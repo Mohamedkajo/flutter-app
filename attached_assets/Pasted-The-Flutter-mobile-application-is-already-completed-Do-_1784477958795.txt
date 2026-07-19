@@ -1,0 +1,139 @@
+The Flutter mobile application is already completed.
+
+Do NOT regenerate the Flutter app.
+
+Now build the remaining production-ready web system.
+
+Create two separate web applications inside the same repository:
+
+```text
+cargo/
+├── mobile_app/          # Existing Flutter application
+├── company_website/     # Public website
+├── admin_panel/         # Admin dashboard
+├── backend/             # REST API
+├── database/            # SQL, migrations, seeds
+├── docker/
+├── docs/
+└── README.md
+```
+
+## 1. Company Website
+
+Create a modern responsive company website.
+
+Include:
+
+* Home
+* About Us
+* Services
+* Features
+* Stores
+* Products
+* Pricing
+* Partners
+* Blog
+* FAQ
+* Contact Us
+* Careers
+* Privacy Policy
+* Terms & Conditions
+* Download App
+* Login
+* Register
+
+The website must be SEO-friendly, responsive, fast, and visually match the Flutter application's branding and design system.
+
+## 2. Admin Panel
+
+Create a complete responsive Admin Dashboard.
+
+Include:
+
+* Dashboard
+* Analytics
+* Reports
+* Users
+* Roles & Permissions
+* Stores
+* Products
+* Categories
+* Orders
+* Wallet
+* Payments
+* Coupons
+* Notifications
+* Reviews
+* Support Tickets
+* CMS (manage website pages)
+* Banners
+* Sliders
+* Promotions
+* Settings
+* Audit Logs
+
+## 3. Backend
+
+Generate a complete production-ready backend.
+
+Implement:
+
+* Authentication (JWT)
+* Authorization
+* REST APIs
+* File Uploads
+* Email Service
+* Push Notifications
+* Payment Integration Structure
+* Logging
+* Validation
+* Swagger Documentation
+* Docker Support
+
+The backend must serve:
+
+* Flutter Mobile App
+* Company Website
+* Admin Panel
+
+using the same APIs.
+
+## 4. Database
+
+Generate:
+
+* Complete SQL Schema
+* Migrations
+* Seed Data
+* Relationships
+* Indexes
+* Constraints
+* Backup Scripts
+
+## 5. Final Verification
+
+* Test every API.
+* Test the website.
+* Test the admin panel.
+* Test the Flutter app.
+* Fix every issue automatically.
+* Ensure there are no build errors.
+* Ensure there are no runtime errors.
+
+## 6. GitHub
+
+Commit everything.
+
+Push all source code to the existing GitHub repository.
+
+Verify that the repository contains:
+
+* mobile_app/
+* company_website/
+* admin_panel/
+* backend/
+* database/
+* docker/
+* docs/
+
+Do not finish until the repository contains the complete production-ready Full Stack system and the push has been verified successfully.

@@ -1,0 +1,426 @@
+# UI / UX MASTER DESIGN INSTRUCTIONS (CRITICAL)
+
+I have attached the official Cargo logo and UI design references.
+
+These images are the ONLY source of truth for the application's visual identity.
+
+DO NOT redesign the application.
+
+DO NOT change the colors.
+
+DO NOT change the layout style.
+
+DO NOT use your own design language.
+
+The final application must look as if every screen was designed by the same UI/UX designer.
+
+------------------------------------------------
+
+## Brand Identity
+
+Application Name:
+Cargo
+
+Logo:
+Use the attached Cargo logo everywhere.
+
+Brand Personality:
+Modern
+Premium
+Minimal
+Fast
+Professional
+Clean
+Luxury Marketplace
+Technology Driven
+
+Design Style:
+Apple Human Interface
+Material 3
+Soft UI
+Minimal
+Large White Spaces
+Premium Cards
+Elegant Animations
+
+------------------------------------------------
+
+## Colors
+
+Primary
+#5E2D91
+
+Primary Dark
+#47206E
+
+Primary Light
+#E8DDF6
+
+Accent
+#F25B57
+
+Secondary Accent
+#F6A623
+
+Background
+#FFFFFF
+
+Surface
+#F8F8FC
+
+Card Background
+#FFFFFF
+
+Divider
+#EFEFF4
+
+Text Primary
+#202124
+
+Text Secondary
+#7A7A7A
+
+Success
+#28C76F
+
+Warning
+#FFB020
+
+Error
+#EA5455
+
+Never introduce new colors unless absolutely necessary.
+
+------------------------------------------------
+
+## Typography
+
+Use Google Font:
+
+Poppins
+
+Weights:
+
+300
+400
+500
+600
+700
+
+Large rounded buttons
+
+Rounded cards
+
+Large product images
+
+Minimal icons
+
+Premium spacing
+
+Soft shadows
+
+Glassmorphism where appropriate.
+
+------------------------------------------------
+
+## Animations
+
+Use smooth Flutter animations.
+
+Hero Animations
+
+Fade
+
+Slide
+
+Scale
+
+Animated Bottom Navigation
+
+Animated Drawer
+
+Animated Cards
+
+Animated Search
+
+Animated Cart
+
+Animated Checkout
+
+Page transitions
+
+Micro interactions
+
+Loading Skeletons
+
+Shimmer Loading
+
+Lottie Animations where appropriate.
+
+------------------------------------------------
+
+## Responsive Design
+
+The application MUST be fully responsive.
+
+Support:
+
+Android
+
+iPhone
+
+Tablet
+
+Foldable Devices
+
+Desktop
+
+Web
+
+Landscape
+
+Portrait
+
+No overflow.
+
+No pixel overflow.
+
+No RenderFlex errors.
+
+No Bottom Overflow.
+
+------------------------------------------------
+
+## Continue the Design
+
+Only a few screens are attached.
+
+You must create all missing screens while maintaining exactly the same design language.
+
+Every new page should feel like it already exists in the original design.
+
+Do not invent another style.
+
+Keep:
+
+same margins
+
+same spacing
+
+same radius
+
+same shadows
+
+same buttons
+
+same icons
+
+same cards
+
+same navigation
+
+same typography
+
+same color palette
+
+same animation style
+
+------------------------------------------------
+
+## Required Screens
+
+Create every missing screen using this exact design language.
+
+Examples include:
+
+Splash
+
+Onboarding
+
+Authentication
+
+OTP
+
+Forgot Password
+
+Home
+
+Categories
+
+Marketplace
+
+Store Listing
+
+Store Details
+
+Merchant Profile
+
+Restaurant Profile
+
+Product Details
+
+Cart
+
+Checkout
+
+Payments
+
+Wallet
+
+Coupons
+
+Loyalty
+
+Notifications
+
+Favorites
+
+Offers
+
+Flash Sales
+
+Search
+
+Orders
+
+Live Tracking
+
+Driver Tracking
+
+Order Details
+
+Invoices
+
+Returns
+
+Refunds
+
+Customer Profile
+
+Addresses
+
+Google Maps
+
+Support
+
+Chat
+
+Reviews
+
+Ratings
+
+Settings
+
+Dark Mode
+
+Languages
+
+Merchant Dashboard
+
+Merchant Products
+
+Merchant Analytics
+
+Merchant Orders
+
+Warehouse
+
+Inventory
+
+Driver Dashboard
+
+Driver Earnings
+
+Driver Wallet
+
+Fleet
+
+Admin Dashboard
+
+Reports
+
+CRM
+
+Accounting
+
+Marketing
+
+Subscriptions
+
+AI Dashboard
+
+------------------------------------------------
+
+## Demo Assets
+
+Generate realistic demo content.
+
+Restaurants
+
+Coffee Shops
+
+Electronics
+
+Fashion
+
+Pharmacy
+
+Supermarket
+
+Flowers
+
+Furniture
+
+Beauty
+
+Services
+
+Realistic product images.
+
+Realistic banners.
+
+Store logos.
+
+Categories.
+
+Offers.
+
+Coupons.
+
+Customer avatars.
+
+Drivers.
+
+Maps.
+
+Everything should look like a production application.
+
+Never use Lorem Ipsum.
+
+------------------------------------------------
+
+## Final Quality
+
+This should NOT look like an AI-generated UI.
+
+It should look like a professionally designed marketplace application similar to:
+
+Uber Eats
+
+Talabat
+
+Careem
+
+Amazon
+
+Noon
+
+HungerStation
+
+Instashop
+
+while preserving the Cargo brand identity shown in the attached designs.
+
+Every page must feel premium, modern, elegant, and consistent with the attached UI.
+
+Do not stop until every screen follows the exact same identity.

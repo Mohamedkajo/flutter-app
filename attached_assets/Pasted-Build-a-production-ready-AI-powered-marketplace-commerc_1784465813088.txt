@@ -1,0 +1,376 @@
+Build a production-ready AI-powered marketplace, commerce, logistics, and ERP platform called "Cargo". The platform should support Web, Android, iOS, and Tablets using Flutter for the frontend and Odoo 18 Community as the backend ERP with PostgreSQL.
+
+The application must have a premium modern UI exactly following the attached design reference with a clean white background, elegant purple primary color, rounded cards, smooth animations, large product images, premium typography, glassmorphism, and Apple-quality user experience. The design must remain consistent across all screens and be fully responsive.
+
+Cargo is a multi-vendor marketplace where every business has its own public storefront and profile. Businesses can be restaurants, cafes, bakeries, pharmacies, grocery stores, supermarkets, fashion stores, electronics shops, flower shops, furniture stores, beauty salons, service providers, warehouses, or any online business.
+
+Each merchant should have:
+- Public store page
+- Store banner
+- Logo
+- Description
+- Categories
+- Unlimited products
+- Menu or catalog
+- Reviews
+- Ratings
+- Gallery
+- Videos
+- Delivery information
+- Business hours
+- Branches
+- Google Maps location
+- Contact information
+- Social media
+- WhatsApp integration
+- Offers
+- Coupons
+- Loyalty program
+- Wallet
+- Analytics dashboard
+- Employees
+- Inventory management
+- Order management
+- Subscription management
+
+Customers should be able to:
+
+Register using Email, Phone Number, OTP, Google, Apple, or Facebook.
+
+Browse nearby stores.
+
+Search stores, products, and categories.
+
+Filter by location, delivery time, price, rating, category, and promotions.
+
+Open any store profile.
+
+Browse its menu or product catalog.
+
+View detailed product pages.
+
+Select variants, sizes, colors, add-ons, and special instructions.
+
+Add products to cart.
+
+Save favorites.
+
+Apply coupons.
+
+Use loyalty points.
+
+Checkout.
+
+Choose address using Google Maps.
+
+Schedule delivery.
+
+Select pickup or delivery.
+
+Choose payment method.
+
+Pay securely.
+
+Receive push notifications.
+
+Track the driver live on the map.
+
+Chat with the driver or merchant.
+
+Receive invoices.
+
+Rate products.
+
+Rate drivers.
+
+Review stores.
+
+Repeat previous orders.
+
+View order history.
+
+Manage wallet.
+
+Earn rewards.
+
+Refer friends.
+
+The platform should support the complete order lifecycle:
+
+Order Created
+
+Merchant Accepts
+
+Preparing
+
+Packed
+
+Driver Assigned
+
+Driver Picks Up
+
+Live Tracking
+
+Delivered
+
+Completed
+
+Cancelled
+
+Refunded
+
+Returned
+
+The Driver App must include:
+
+Driver registration
+
+Vehicle management
+
+Online/Offline mode
+
+Receive orders
+
+Accept or reject orders
+
+Google Maps navigation
+
+Optimized routes
+
+Pickup confirmation
+
+QR code scanning
+
+Barcode scanning
+
+OTP verification
+
+Customer signature
+
+Photo proof of delivery
+
+Wallet
+
+Daily earnings
+
+Withdrawals
+
+Performance dashboard
+
+Ratings
+
+Attendance
+
+Notifications
+
+Merchant Dashboard must include:
+
+Sales analytics
+
+Revenue
+
+Orders
+
+Products
+
+Inventory
+
+Employees
+
+Coupons
+
+Campaigns
+
+Customers
+
+Reviews
+
+Finance
+
+Invoices
+
+Reports
+
+Marketing
+
+Admin Dashboard must include:
+
+Complete ERP system powered by Odoo.
+
+Customers
+
+Merchants
+
+Drivers
+
+Orders
+
+Inventory
+
+Warehouse
+
+Accounting
+
+CRM
+
+Marketing
+
+Finance
+
+Payments
+
+Refunds
+
+Analytics
+
+AI Dashboard
+
+Reports
+
+Support Tickets
+
+Permissions
+
+Audit Logs
+
+System Settings
+
+Warehouse Management should support:
+
+Receiving
+
+Picking
+
+Packing
+
+Shipping
+
+Inventory
+
+Transfers
+
+Returns
+
+Barcode
+
+QR Codes
+
+Cycle Counts
+
+Multiple Warehouses
+
+Payments should support:
+
+Stripe
+
+PayPal
+
+Paymob
+
+MyFatoorah
+
+Fawry
+
+Mada
+
+Apple Pay
+
+Google Pay
+
+Wallet
+
+Cash On Delivery
+
+Split Payments
+
+Refunds
+
+VAT
+
+Invoices
+
+Shipping should support:
+
+Express
+
+Same Day
+
+Scheduled
+
+Pickup
+
+Click and Collect
+
+Fleet
+
+Third-party logistics
+
+Distance pricing
+
+Weight pricing
+
+Delivery zones
+
+Tracking must include:
+
+Real-time GPS tracking
+
+Driver live location
+
+ETA
+
+Timeline
+
+Push Notifications
+
+SMS
+
+Email
+
+WhatsApp Notifications
+
+Google Maps integration
+
+The application should include:
+
+Loyalty Program
+
+Referral System
+
+Gift Cards
+
+Flash Sales
+
+Campaigns
+
+Subscriptions
+
+Favorites
+
+Product Reviews
+
+Merchant Reviews
+
+Customer Reviews
+
+AI Product Recommendations
+
+AI Customer Support Chatbot
+
+AI Route Optimization
+
+AI Sales Forecasting
+
+AI Inventory Forecasting
+
+AI Dynamic Pricing
+
+AI Fraud Detection
+
+The backend must expose a complete REST API secured with JWT Authentication and Role-Based Access Control for Flutter applications.
+
+Use Odoo Community 18 as the ERP backend and organize the project into custom modules including authentication, customers, merchants, products, inventory, warehouse, delivery, drivers, payments, accounting, CRM, marketing, loyalty, coupons, notifications, analytics, AI services, and reporting.
+
+Use Flutter Clean Architecture with BLoC, Repository Pattern, Dio, Hive, GetIt, Firebase Cloud Messaging, Localization, Offline Support, Infinite Scrolling, Pagination, Material 3, Cupertino widgets, Dark Mode, and Light Mode.
+
+Support E...

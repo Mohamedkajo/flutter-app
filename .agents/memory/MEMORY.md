@@ -1,0 +1,4 @@
+- [GitHub push method](github-push.md) — always use @replit/connectors-sdk connector proxy for pushes; gitPush callback returns NO_CREDENTIALS in this environment
+- [Admin dashboard build](admin-dashboard.md) — admin artifact at /admin/, uses axios (must be installed separately), all admin routes behind requireAuth+requireAdmin middleware
+- [OpenAPI naming rules](openapi-naming.md) — body schemas must be entity-shaped (NoteInput not CreateNoteBody) to avoid TS2308 collision; BroadcastNotificationBody worked fine
+- [API server route imports](api-route-imports.md) — new route files must import DB as `from "@workspace/db"` not `from "../db"`; esbuild will fail with "Could not resolve" otherwise

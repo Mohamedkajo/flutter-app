@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Cargo Marketplace"
+version = "1.0.0"
+id = "artifacts/cargo"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20024
+
+[services.development]
+run = "pnpm --filter @workspace/cargo run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cargo", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/cargo/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20024"
+BASE_PATH = "/"

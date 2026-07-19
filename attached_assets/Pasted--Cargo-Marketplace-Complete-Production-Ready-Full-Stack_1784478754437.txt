@@ -1,0 +1,374 @@
+# Cargo Marketplace - Complete Production Ready Full Stack Platform
+
+You are the Lead Software Architect, Senior Flutter Developer, Senior Backend Engineer, Senior Frontend Engineer, Senior UI/UX Designer, Database Architect, DevOps Engineer, QA Engineer, and Security Engineer.
+
+Your mission is to transform the existing repository into a complete production-ready Cargo Marketplace platform.
+
+The Flutter application already exists.
+
+**Do NOT rebuild the Flutter application.**
+
+Audit the existing project, improve it, complete missing features, and extend it into a complete Full Stack platform.
+
+---
+
+# Preserve the Existing Identity
+
+The current Flutter application already has a visual identity.
+
+**DO NOT redesign it.**
+
+The Company Website and Admin Panel MUST use exactly the same Design System as the Flutter application.
+
+Reuse the existing:
+
+* Colors
+* Primary & Secondary Palette
+* Gradients
+* Typography
+* Font Family
+* Icons
+* Buttons
+* Cards
+* Inputs
+* Dialogs
+* Bottom Sheets
+* Shadows
+* Border Radius
+* Animations
+* Spacing
+* UI Components
+* Logo
+* Branding
+* Illustrations
+
+The Website, Mobile App, and Admin Panel must look like they belong to the same product.
+
+---
+
+# Technology Stack
+
+Use ONLY these technologies.
+
+## Mobile
+
+Flutter
+
+## Public Website
+
+Next.js + React + TypeScript
+
+## Admin Panel
+
+Next.js + React + TypeScript
+
+## Backend
+
+Python FastAPI
+
+## Database
+
+PostgreSQL
+
+## ORM
+
+SQLAlchemy
+
+## Database Migrations
+
+Alembic
+
+## Authentication
+
+JWT + Refresh Tokens
+
+## Cache
+
+Redis
+
+## Storage
+
+MinIO (S3 Compatible)
+
+## API Documentation
+
+Swagger / OpenAPI
+
+## Deployment
+
+Docker + Docker Compose + Nginx
+
+---
+
+# Project Structure
+
+The repository must contain:
+
+```text
+mobile_app/
+company_website/
+admin_panel/
+backend/
+database/
+docker/
+docs/
+```
+
+---
+
+# Phase 1 — Audit
+
+Analyze the entire repository.
+
+Generate a report showing:
+
+✅ Completed Features
+
+⚠ Partially Implemented Features
+
+❌ Missing Features
+
+Then continue implementing the missing parts automatically.
+
+---
+
+# Phase 2 — Flutter
+
+Keep the existing Flutter application.
+
+Improve only when necessary.
+
+Fix bugs.
+
+Complete missing features.
+
+Keep the same design.
+
+---
+
+# Phase 3 — Company Website
+
+Build a complete responsive company website.
+
+Pages:
+
+* Home
+* About
+* Services
+* Marketplace
+* Featured Stores
+* Featured Products
+* Pricing
+* FAQ
+* Blog
+* Careers
+* Contact
+* Download App
+* Privacy Policy
+* Terms & Conditions
+* Login
+* Register
+
+The Website must:
+
+* Match the Flutter branding
+* Be responsive
+* Be SEO friendly
+* Have excellent performance
+* Support dark mode if the Flutter app supports it
+
+---
+
+# Phase 4 — Admin Panel
+
+Generate a complete responsive Admin Dashboard.
+
+Every page must be fully functional.
+
+Implement complete CRUD.
+
+Modules:
+
+* Dashboard
+* Analytics
+* Reports
+* Users
+* Roles
+* Permissions
+* Vendors
+* Stores
+* Products
+* Categories
+* Inventory
+* Orders
+* Customers
+* Wallet
+* Payments
+* Coupons
+* Notifications
+* Reviews
+* CMS
+* Website Content
+* Home Page Sections
+* Banners
+* Promotions
+* FAQs
+* Contact Messages
+* Settings
+* Audit Logs
+
+The Admin Panel must also manage the content displayed on the Company Website.
+
+---
+
+# Phase 5 — Backend
+
+Generate a complete FastAPI backend.
+
+Implement:
+
+* Authentication
+* Authorization
+* JWT
+* Refresh Tokens
+* User Management
+* Role Management
+* Permissions
+* Stores
+* Vendors
+* Products
+* Categories
+* Inventory
+* Orders
+* Coupons
+* Wallet
+* Payments
+* Notifications
+* Reviews
+* CMS APIs
+* Analytics APIs
+* Reports APIs
+* File Uploads
+* Image Processing
+* Audit Logs
+* Validation
+* Logging
+* Error Handling
+
+Generate real APIs.
+
+Do NOT use placeholder code.
+
+---
+
+# Phase 6 — Database
+
+Generate:
+
+* PostgreSQL schema
+* Alembic migrations
+* Seed Data
+* Relationships
+* Foreign Keys
+* Constraints
+* Indexes
+* Backup scripts
+
+---
+
+# Phase 7 — Integration
+
+The following applications must share one backend and one database:
+
+* Flutter Mobile App
+* Company Website
+* Admin Panel
+
+Everything must stay synchronized.
+
+---
+
+# Phase 8 — Security
+
+Implement:
+
+* RBAC
+* Secure password hashing
+* Input validation
+* Secure file uploads
+* Environment variables
+* Rate limiting
+* Security headers
+* Logging
+
+---
+
+# Phase 9 — Testing
+
+Run complete tests.
+
+Verify:
+
+* Flutter App
+* Company Website
+* Admin Panel
+* Backend
+* Database
+
+Test every CRUD operation.
+
+Create sample:
+
+* Admin
+* Users
+* Vendors
+* Stores
+* Products
+* Categories
+* Orders
+
+Automatically fix every issue found.
+
+Repeat testing until all tests pass.
+
+---
+
+# Phase 10 — Deployment
+
+Generate:
+
+* Docker Compose
+* Nginx Configuration
+* Environment Templates
+* Deployment Guide
+
+---
+
+# Phase 11 — GitHub
+
+Commit changes in logical commits with meaningful commit messages.
+
+Push everything to the connected GitHub repository.
+
+Verify that the repository contains:
+
+* mobile_app
+* company_website
+* admin_panel
+* backend
+* database
+* docker
+* docs
+
+Verify that every project builds successfully.
+
+Do NOT report success until:
+
+* All applications build successfully.
+* All CRUD operations work.
+* Backend APIs are functional.
+* Database migrations run successfully.
+* Flutter, Website, and Admin Panel communicate with the same backend.
+* All code has been committed and pushed successfully to GitHub.
+
+The final result must be a complete, production-ready Full Stack Cargo Marketplace platform that can be deployed and used in a real business.

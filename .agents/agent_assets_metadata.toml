@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "CBRz9IsDnJ90-BKTPSJ5f"
+uri = "file://cargo-flutter.zip"
+type = "unspecified"
+title = "Cargo Flutter App"

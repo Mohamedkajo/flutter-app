@@ -1,0 +1,278 @@
+The Flutter mobile application has already been generated.
+
+Do NOT rebuild or redesign the Flutter app.
+
+Your task is to transform this project into a complete production-ready Full Stack platform while preserving the existing design language.
+
+## IMPORTANT
+
+The Company Website and the Admin Panel MUST use exactly the same visual identity as the Flutter application.
+
+Reuse the same:
+
+* Colors
+* Typography
+* Icons
+* Buttons
+* Cards
+* Border Radius
+* Shadows
+* Spacing
+* Animations
+* Components
+* Branding
+* Logo
+* Design System
+
+The Website, Admin Panel, and Flutter App must feel like one product.
+
+Do not redesign the UI.
+
+Only extend it where necessary.
+
+---
+
+## Technology Stack
+
+Backend:
+
+* Python
+* FastAPI
+* SQLAlchemy ORM
+* Alembic Migrations
+* PostgreSQL
+* JWT Authentication
+* Redis
+* Docker
+* Nginx
+* Swagger/OpenAPI
+
+Database:
+
+PostgreSQL
+
+---
+
+## Create the following structure
+
+```text
+mobile_app/
+company_website/
+admin_panel/
+backend/
+database/
+docker/
+docs/
+```
+
+---
+
+## Phase 1 — Audit
+
+Inspect the entire repository.
+
+Produce a report showing:
+
+✅ Fully implemented
+
+⚠ Partially implemented
+
+❌ Missing
+
+Check:
+
+* Flutter
+* Website
+* Admin Panel
+* Backend
+* Database
+* Authentication
+* APIs
+* CRUD
+* Payments
+* Notifications
+* Uploads
+* Security
+* Deployment
+
+Do not skip anything.
+
+---
+
+## Phase 2 — Backend
+
+Generate a complete production-ready FastAPI backend.
+
+Implement:
+
+* Authentication
+* Refresh Tokens
+* Users
+* Roles
+* Permissions
+* Stores
+* Categories
+* Products
+* Inventory
+* Orders
+* Wallet
+* Coupons
+* Notifications
+* Reviews
+* Analytics
+* Reports
+* CMS
+* Settings
+* File Uploads
+* Audit Logs
+
+Generate every REST API required by both Flutter and the Web applications.
+
+No placeholder code.
+
+No mock APIs.
+
+Everything must work.
+
+---
+
+## Phase 3 — Database
+
+Generate:
+
+* PostgreSQL schema
+* Alembic migrations
+* Seed data
+* Relationships
+* Constraints
+* Indexes
+* Backup scripts
+
+---
+
+## Phase 4 — Company Website
+
+Create a responsive public website.
+
+Pages:
+
+* Home
+* About
+* Services
+* Stores
+* Products
+* Pricing
+* FAQ
+* Contact
+* Careers
+* Privacy Policy
+* Terms
+* Download App
+
+Use exactly the same branding as the Flutter app.
+
+---
+
+## Phase 5 — Admin Panel
+
+Create a complete responsive Admin Dashboard.
+
+Every page must be fully functional.
+
+CRUD must work.
+
+Modules:
+
+* Dashboard
+* Users
+* Roles
+* Stores
+* Products
+* Categories
+* Orders
+* Customers
+* Wallet
+* Payments
+* Coupons
+* Reviews
+* Notifications
+* Reports
+* CMS
+* Website Content
+* Banners
+* Settings
+* Audit Logs
+
+---
+
+## Phase 6 — Integration
+
+Connect:
+
+Flutter
+
+↓
+
+FastAPI
+
+↓
+
+PostgreSQL
+
+↑
+
+Website
+
+↑
+
+Admin Panel
+
+Everything must use the same backend and the same database.
+
+---
+
+## Phase 7 — Testing
+
+Test every feature.
+
+Create sample data.
+
+Verify:
+
+* Login
+* Register
+* Create User
+* Create Store
+* Create Category
+* Create Product
+* Edit
+* Delete
+* Search
+* Filters
+* Orders
+* Wallet
+* Notifications
+
+Automatically fix every issue found.
+
+Repeat testing until all tests pass.
+
+---
+
+## Phase 8 — GitHub
+
+Commit all changes.
+
+Push everything to the existing GitHub repository.
+
+Verify that the repository contains:
+
+* mobile_app
+* company_website
+* admin_panel
+* backend
+* database
+* docker
+* docs
+
+Do not finish until the entire Full Stack platform is production-ready and successfully pushed to GitHub.

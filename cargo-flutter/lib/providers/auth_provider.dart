@@ -1,145 +1,94 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../config/api_config.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
-
-enum AuthStatus { unknown, authenticated, unauthenticated }
+import '../config/api_config.dart';
 
 class AuthProvider extends ChangeNotifier {
-  AuthStatus _status = AuthStatus.unknown;
   User? _user;
-  String? _error;
+  String? _token;
+  bool _isLoading = false;
 
-  AuthStatus get status => _status;
   User? get user => _user;
-  String? get error => _error;
-  bool get isAuthenticated => _status == AuthStatus.authenticated;
-  bool get isLoading => _status == AuthStatus.unknown;
+  String? get token => _token;
+  bool get isLoading => _isLoading;
+  bool get isAuthenticated => _token != null && _user != null;
 
-  AuthProvider() {
-    _tryAutoLogin();
-  }
+  final ApiService _api = ApiService();
 
-  Future<void> _tryAutoLogin() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString(ApiConfig.tokenKey);
-      final userJson = prefs.getString(ApiConfig.userKey);
-
-      if (token == null) {
-        _status = AuthStatus.unauthenticated;
-        notifyListeners();
-        return;
-      }
-
-      await ApiService.instance.setToken(token);
-
-      if (userJson != null) {
-        _user = User.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
-        _status = AuthStatus.authenticated;
-        notifyListeners();
-      }
-
-      // Refresh profile in background
-      try {
-        _user = await ApiService.instance.getProfile();
-        await _saveUser(_user!);
-        _status = AuthStatus.authenticated;
-      } catch (_) {
-        if (_user == null) {
-          _status = AuthStatus.unauthenticated;
-          await ApiService.instance.clearToken();
-        }
-      }
-    } catch (_) {
-      _status = AuthStatus.unauthenticated;
+  Future<void> loadFromStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString(ApiConfig.tokenKey);
+    final userJson = prefs.getString(ApiConfig.userKey);
+    if (userJson != null) {
+      _user = User.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
+    }
+    if (_token != null) {
+      _api.setToken(_token);
     }
     notifyListeners();
   }
 
-  Future<bool> login(String email, String password) async {
-    _error = null;
+  Future<void> login(String email, String password) async {
+    _isLoading = true;
+    notifyListeners();
     try {
-      final data = await ApiService.instance.login(email, password);
-      final token = data['token'] as String?;
-      final userData = data['user'] as Map<String, dynamic>?;
-
-      if (token == null) {
-        _error = 'Invalid response from server';
-        notifyListeners();
-        return false;
+      final res = await _api.login(email, password);
+      _token = res['token'] as String?;
+      final userData = res['user'] as Map<String, dynamic>?;
+      if (userData != null) _user = User.fromJson(userData);
+      _api.setToken(_token);
+      final prefs = await SharedPreferences.getInstance();
+      if (_token != null) await prefs.setString(ApiConfig.tokenKey, _token!);
+      if (_user != null) {
+        await prefs.setString(ApiConfig.userKey, jsonEncode(_user!.toJson()));
       }
-
-      await ApiService.instance.setToken(token);
-      _user = userData != null ? User.fromJson(userData) : await ApiService.instance.getProfile();
-      await _saveUser(_user!);
-      _status = AuthStatus.authenticated;
+    } finally {
+      _isLoading = false;
       notifyListeners();
-      return true;
-    } on ApiException catch (e) {
-      _error = e.message;
-      notifyListeners();
-      return false;
-    } catch (_) {
-      _error = 'Something went wrong. Please try again.';
-      notifyListeners();
-      return false;
     }
   }
 
-  Future<bool> register(String name, String email, String password) async {
-    _error = null;
+  Future<void> register(
+      String name, String phone, String email, String password) async {
+    _isLoading = true;
+    notifyListeners();
     try {
-      final data = await ApiService.instance.register(name, email, password);
-      final token = data['token'] as String?;
-      final userData = data['user'] as Map<String, dynamic>?;
-
-      if (token != null) {
-        await ApiService.instance.setToken(token);
-        _user = userData != null ? User.fromJson(userData) : await ApiService.instance.getProfile();
-        await _saveUser(_user!);
-        _status = AuthStatus.authenticated;
-        notifyListeners();
-        return true;
+      final res = await _api.register(name, phone, email, password);
+      _token = res['token'] as String?;
+      final userData = res['user'] as Map<String, dynamic>?;
+      if (userData != null) _user = User.fromJson(userData);
+      _api.setToken(_token);
+      final prefs = await SharedPreferences.getInstance();
+      if (_token != null) await prefs.setString(ApiConfig.tokenKey, _token!);
+      if (_user != null) {
+        await prefs.setString(ApiConfig.userKey, jsonEncode(_user!.toJson()));
       }
-      _error = 'Registration failed';
+    } finally {
+      _isLoading = false;
       notifyListeners();
-      return false;
-    } on ApiException catch (e) {
-      _error = e.message;
-      notifyListeners();
-      return false;
-    } catch (_) {
-      _error = 'Something went wrong. Please try again.';
-      notifyListeners();
-      return false;
     }
   }
 
   Future<void> logout() async {
-    await ApiService.instance.clearToken();
+    _token = null;
     _user = null;
-    _status = AuthStatus.unauthenticated;
+    _api.setToken(null);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(ApiConfig.tokenKey);
+    await prefs.remove(ApiConfig.userKey);
     notifyListeners();
   }
 
-  Future<void> refreshUser() async {
+  Future<void> refreshProfile() async {
+    if (_token == null) return;
     try {
-      _user = await ApiService.instance.getProfile();
-      await _saveUser(_user!);
+      final data = await _api.getProfile();
+      _user = User.fromJson(data);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(ApiConfig.userKey, jsonEncode(_user!.toJson()));
       notifyListeners();
     } catch (_) {}
-  }
-
-  Future<void> _saveUser(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(ApiConfig.userKey, jsonEncode(user.toJson()));
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
   }
 }

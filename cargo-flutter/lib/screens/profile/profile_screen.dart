@@ -14,186 +14,385 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: AppColors.gradientPrimary,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+      body: CustomScrollView(
+        slivers: [
+          // ── Gradient header ────────────────────────────────────────
+          SliverAppBar(
+            expandedHeight: 220,
+            pinned: true,
+            backgroundColor: AppColors.primary,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.pin,
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(32)),
+                ),
+                child: SafeArea(
+                  bottom: false,
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('My Profile', style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500)),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                       // Avatar
-                      Container(
-                        width: 88, height: 88,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.2),
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: user?.avatar != null
-                            ? ClipOval(child: Image.network(user!.avatar!, fit: BoxFit.cover))
-                            : Center(
-                                child: Text(user?.initials ?? 'U',
-                                    style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800)),
-                              ),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(user?.name ?? 'Guest', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700)),
-                      Text(user?.email ?? '', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
-                      const SizedBox(height: 20),
-                      // Stats row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      Stack(
+                        alignment: Alignment.center,
                         children: [
-                          _Stat(label: 'Points', value: '${user?.loyaltyPoints ?? 0}', icon: Icons.stars_rounded),
-                          Container(width: 1, height: 36, color: Colors.white.withOpacity(0.3)),
-                          _Stat(label: 'Wallet', value: '\$${(user?.walletBalance ?? 0).toStringAsFixed(2)}', icon: Icons.account_balance_wallet_rounded),
+                          Container(
+                            width: 90,
+                            height: 90,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFB06EF0), Color(0xFF5E2D91)],
+                              ),
+                              border:
+                                  Border.all(color: Colors.white, width: 3),
+                            ),
+                            child: Center(
+                              child: Text(
+                                user?.name.isNotEmpty == true
+                                    ? user!.name[0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                width: 26,
+                                height: 26,
+                                decoration: BoxDecoration(
+                                  color: AppColors.coral,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: Colors.white, width: 2),
+                                ),
+                                child: const Icon(
+                                    Icons.camera_alt_rounded,
+                                    color: Colors.white,
+                                    size: 12),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
+                      const SizedBox(height: 12),
+                      Text(
+                        user?.name ?? 'Guest',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        user?.email ?? '',
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13),
+                      ),
+                      const SizedBox(height: 12),
+                      // Loyalty points chip
+                      if (user != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('⭐', style: TextStyle(fontSize: 14)),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${user.loyaltyPoints} Loyalty Points',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
               ),
             ),
+          ),
 
-            const SizedBox(height: 24),
-
-            // Menu sections
-            _Section(title: 'Account', items: [
-              _MenuItem(icon: Icons.person_outline_rounded, label: 'Personal Information', color: AppColors.primary, onTap: () {}),
-              _MenuItem(icon: Icons.location_on_outlined, label: 'Saved Addresses', color: AppColors.info, onTap: () {}),
-              _MenuItem(icon: Icons.account_balance_wallet_outlined, label: 'Wallet & Payments', color: AppColors.success, onTap: () => context.push('/wallet')),
-              _MenuItem(icon: Icons.favorite_border_rounded, label: 'My Favorites', color: AppColors.secondary, onTap: () => context.push('/favorites')),
-            ]),
-
-            const SizedBox(height: 16),
-
-            _Section(title: 'Orders', items: [
-              _MenuItem(icon: Icons.receipt_long_outlined, label: 'Order History', color: AppColors.primary, onTap: () => context.go('/orders')),
-              _MenuItem(icon: Icons.notifications_outlined, label: 'Notifications', color: AppColors.warning, onTap: () => context.push('/notifications')),
-            ]),
-
-            const SizedBox(height: 16),
-
-            _Section(title: 'Support', items: [
-              _MenuItem(icon: Icons.help_outline_rounded, label: 'Help & Support', color: AppColors.teal, onTap: () {}),
-              _MenuItem(icon: Icons.star_outline_rounded, label: 'Rate the App', color: AppColors.accent, onTap: () {}),
-              _MenuItem(icon: Icons.info_outline_rounded, label: 'About Cargo', color: AppColors.textSecondary, onTap: () {}),
-            ]),
-
-            const SizedBox(height: 16),
-
-            // Logout
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: OutlinedButton.icon(
-                  onPressed: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Sign Out'),
-                        content: const Text('Are you sure you want to sign out?'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                          ElevatedButton(onPressed: () => Navigator.pop(context, true),
-                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-                              child: const Text('Sign Out')),
+          // ── Menu items ─────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              child: Column(
+                children: [
+                  _MenuGroup(items: [
+                    _MenuItem(
+                      icon: Icons.receipt_long_rounded,
+                      iconBg: const Color(0xFFE8F4FF),
+                      iconColor: AppColors.info,
+                      label: 'My Orders',
+                      onTap: () => context.go('/orders'),
+                    ),
+                    _MenuItem(
+                      icon: Icons.location_on_rounded,
+                      iconBg: const Color(0xFFFFE8E8),
+                      iconColor: AppColors.coral,
+                      label: 'Saved Addresses',
+                      onTap: () {},
+                    ),
+                    _MenuItem(
+                      icon: Icons.local_offer_rounded,
+                      iconBg: const Color(0xFFFFF3E0),
+                      iconColor: AppColors.amber,
+                      label: 'Coupons & Offers',
+                      onTap: () {},
+                      badge: '3',
+                    ),
+                  ]),
+                  const SizedBox(height: 14),
+                  _MenuGroup(items: [
+                    _MenuItem(
+                      icon: Icons.account_balance_wallet_rounded,
+                      iconBg: const Color(0xFFE8FFF8),
+                      iconColor: AppColors.teal,
+                      label: 'Wallet',
+                      subtitle: user != null
+                          ? '\$${user.walletBalance.toStringAsFixed(2)}'
+                          : null,
+                      onTap: () => context.push('/wallet'),
+                    ),
+                    _MenuItem(
+                      icon: Icons.notifications_rounded,
+                      iconBg: AppColors.primaryLight,
+                      iconColor: AppColors.primary,
+                      label: 'Notifications',
+                      onTap: () => context.push('/notifications'),
+                    ),
+                    _MenuItem(
+                      icon: Icons.star_rate_rounded,
+                      iconBg: const Color(0xFFFFF8E0),
+                      iconColor: AppColors.amber,
+                      label: 'Rate the App',
+                      onTap: () {},
+                    ),
+                  ]),
+                  const SizedBox(height: 14),
+                  _MenuGroup(items: [
+                    _MenuItem(
+                      icon: Icons.help_outline_rounded,
+                      iconBg: const Color(0xFFEEEEFF),
+                      iconColor: const Color(0xFF6C63FF),
+                      label: 'Help & Support',
+                      onTap: () {},
+                    ),
+                    _MenuItem(
+                      icon: Icons.privacy_tip_outlined,
+                      iconBg: AppColors.surface,
+                      iconColor: AppColors.textSecondary,
+                      label: 'Privacy Policy',
+                      onTap: () {},
+                    ),
+                    _MenuItem(
+                      icon: Icons.settings_outlined,
+                      iconBg: AppColors.surface,
+                      iconColor: AppColors.textSecondary,
+                      label: 'Settings',
+                      onTap: () {},
+                    ),
+                  ]),
+                  const SizedBox(height: 24),
+                  // Logout
+                  GestureDetector(
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          title: const Text('Log Out',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
+                          content: const Text(
+                              'Are you sure you want to log out?'),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel')),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.coral,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0),
+                              child: const Text('Log Out'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true && context.mounted) {
+                        await context.read<AuthProvider>().logout();
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.coral.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: AppColors.coral.withOpacity(0.2)),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.logout_rounded,
+                              color: AppColors.coral, size: 18),
+                          SizedBox(width: 8),
+                          Text('Log Out',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.coral)),
                         ],
                       ),
-                    );
-                    if (confirm == true && context.mounted) context.read<AuthProvider>().logout();
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.error,
-                    side: const BorderSide(color: AppColors.error),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                    ),
                   ),
-                  icon: const Icon(Icons.logout_rounded, size: 20),
-                  label: const Text('Sign Out', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                ),
+                  const SizedBox(height: 100),
+                ],
               ),
             ),
-            const SizedBox(height: 100),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _Stat extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  const _Stat({required this.label, required this.value, required this.icon});
-
-  @override
-  Widget build(BuildContext context) => Column(children: [
-        Icon(icon, color: Colors.white70, size: 20),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800)),
-        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12)),
-      ]);
-}
-
-class _Section extends StatelessWidget {
-  final String title;
+class _MenuGroup extends StatelessWidget {
   final List<_MenuItem> items;
-  const _Section({required this.title, required this.items});
+  const _MenuGroup({required this.items});
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 0.5)),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg), border: Border.all(color: AppColors.border)),
-              child: Column(
-                children: List.generate(items.length * 2 - 1, (i) {
-                  if (i.isOdd) return const Divider(height: 1, indent: 56);
-                  return items[i ~/ 2];
-                }),
-              ),
-            ),
-          ],
-        ),
-      );
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: List.generate(items.length, (i) {
+          final item = items[i];
+          final isLast = i == items.length - 1;
+          return Column(
+            children: [
+              item,
+              if (!isLast)
+                const Divider(
+                    height: 1, indent: 60, color: AppColors.divider),
+            ],
+          );
+        }),
+      ),
+    );
+  }
 }
 
 class _MenuItem extends StatelessWidget {
   final IconData icon;
+  final Color iconBg;
+  final Color iconColor;
   final String label;
-  final Color color;
+  final String? subtitle;
+  final String? badge;
   final VoidCallback onTap;
-  const _MenuItem({required this.icon, required this.label, required this.color, required this.onTap});
+
+  const _MenuItem({
+    required this.icon,
+    required this.iconBg,
+    required this.iconColor,
+    required this.label,
+    this.subtitle,
+    this.badge,
+    required this.onTap,
+  });
 
   @override
-  Widget build(BuildContext context) => ListTile(
-        onTap: onTap,
-        leading: Container(
-          width: 38, height: 38,
-          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, color: color, size: 20),
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary)),
+                  if (subtitle != null)
+                    Text(subtitle!,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            if (badge != null)
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                    color: AppColors.coral,
+                    borderRadius: BorderRadius.circular(20)),
+                child: Text(badge!,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700)),
+              ),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.textMuted, size: 20),
+          ],
         ),
-        title: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-        trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: AppColors.textMuted),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-        minLeadingWidth: 38,
-      );
+      ),
+    );
+  }
 }

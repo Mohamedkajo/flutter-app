@@ -42,27 +42,19 @@ class StoreListCard extends StatelessWidget {
             ClipRRect(
               borderRadius: const BorderRadius.horizontal(
                   left: Radius.circular(CargoSpacing.radiusXl)),
-              child: store.image != null && store.image!.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: store.image!,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => Container(
-                        width: 100,
-                        height: 100,
-                        color: CargoColors.primaryLight,
-                        child: const Icon(Icons.store_rounded,
-                            color: CargoColors.primary, size: 32),
-                      ),
-                    )
-                  : Container(
-                      width: 100,
-                      height: 100,
-                      color: CargoColors.primaryLight,
-                      child: const Icon(Icons.store_rounded,
-                          color: CargoColors.primary, size: 32),
-                    ),
+              child: CachedNetworkImage(
+                imageUrl: store.image,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Container(
+                  width: 100,
+                  height: 100,
+                  color: CargoColors.primaryLight,
+                  child: const Icon(Icons.store_rounded,
+                      color: CargoColors.primary, size: 32),
+                ),
+              ),
             ),
 
             // ── Info ─────────────────────────────────────────────────────
@@ -96,9 +88,8 @@ class StoreListCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 2),
-                    if (store.categoryName != null)
                     Text(
-                      store.categoryName!,
+                      store.categoryName,
                       style: GoogleFonts.poppins(
                           fontSize: 12, color: CargoColors.textSecondary),
                     ),
@@ -198,23 +189,17 @@ class FeaturedStoreCircle extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(18),
-                  child: store.image != null && store.image!.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: store.image!,
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => Container(
-                            width: 100,
-                            height: 100,
-                            color: CargoColors.primaryLight,
-                          ),
-                        )
-                      : Container(
-                          width: 100,
-                          height: 100,
-                          color: CargoColors.primaryLight,
-                        ),
+                  child: CachedNetworkImage(
+                    imageUrl: store.image,
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, __, ___) => Container(
+                      width: 100,
+                      height: 100,
+                      color: CargoColors.primaryLight,
+                    ),
+                  ),
                 ),
                 // dark overlay
                 Positioned.fill(

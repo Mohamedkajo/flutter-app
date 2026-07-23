@@ -1,25 +1,31 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../models/product.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../../models/store.dart';
+import '../../models/product.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/api_service.dart';
-import '../../theme/app_theme.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/shimmer_loader.dart';
+import '../../widgets/common/loading_shimmer.dart';
+import '../../theme/app_theme.dart';
 
 class StoreDetailScreen extends StatefulWidget {
   final int storeId;
   const StoreDetailScreen({super.key, required this.storeId});
+
   @override
   State<StoreDetailScreen> createState() => _StoreDetailScreenState();
 }
 
 class _StoreDetailScreenState extends State<StoreDetailScreen> {
+  final _api = ApiService();
   Store? _store;
   List<Product> _products = [];
-  bool _loading = true;
+  List<String> _categories = [];
+  String? _selectedCategory;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -28,176 +34,402 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() => _isLoading = true);
     try {
-      final results = await Future.wait([
-        ApiService.instance.getStore(widget.storeId),
-        ApiService.instance.getStoreProducts(widget.storeId),
+      final res = await Future.wait([
+        _api.getStore(widget.storeId),
+        _api.getStoreProducts(widget.storeId),
       ]);
-      if (mounted) setState(() {
-        _store = results[0] as Store;
-        _products = results[1] as List<Product>;
-        _loading = false;
-      });
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
-    }
+      _store = res[0] as Store;
+      _products = res[1] as List<Product>;
+      final cats = _products
+          .where((p) => p.categoryName != null)
+          .map((p) => p.categoryName!)
+          .toSet()
+          .toList();
+      _categories = cats;
+    } catch (_) {}
+    setState(() => _isLoading = false);
+  }
+
+  List<Product> get _filtered {
+    if (_selectedCategory == null) return _products;
+    return _products.where((p) => p.categoryName == _selectedCategory).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final cart = context.watch<CartProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: _loading ? _buildLoading() : _buildContent(),
-    );
-  }
-
-  Widget _buildLoading() => CustomScrollView(slivers: [
-    const SliverAppBar(pinned: true, expandedHeight: 200, flexibleSpace: FlexibleSpaceBar(background: ShimmerBox(height: 200))),
-    const SliverToBoxAdapter(child: SizedBox(height: 16)),
-    SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      sliver: SliverGrid(
-        delegate: SliverChildBuilderDelegate((_, __) => const ProductCardShimmer(), childCount: 4),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.72),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: GestureDetector(
+          onTap: () => context.pop(),
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.4),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.white, size: 18),
+          ),
+        ),
+        actions: [
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.favorite_border_rounded,
+                  color: Colors.white, size: 18),
+            ),
+          ),
+        ],
       ),
-    ),
-  ]);
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary))
+          : _store == null
+              ? const Center(child: Text('Store not found'))
+              : CustomScrollView(
+                  slivers: [
+                    // ── Cover image ────────────────────────────────────
+                    SliverToBoxAdapter(
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: _store!.image,
+                            height: 230,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                          Positioned.fill(
+                            child: Container(
+                              decoration:
+                                  const BoxDecoration(gradient: AppColors.darkGradient),
+                            ),
+                          ),
+                          // Logo overlapping
+                          Positioned(
+                            bottom: -28,
+                            left: 20,
+                            child: Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.15),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: _store!.logo ?? _store!.image,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: AppColors.primaryLight,
+                                    child: const Icon(
+                                        Icons.storefront_rounded,
+                                        color: AppColors.primary,
+                                        size: 28),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-  Widget _buildContent() {
-    final store = _store;
-    if (store == null) {
-      return const Center(child: Text('Store not found'));
-    }
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          pinned: true,
-          expandedHeight: 220,
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Stack(
-              fit: StackFit.expand,
-              children: [
-                store.coverImage.isNotEmpty
-                    ? CachedNetworkImage(imageUrl: store.coverImage, fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => Container(color: AppColors.primary))
-                    : Container(decoration: const BoxDecoration(gradient: AppColors.gradientPrimary)),
-                DecoratedBox(decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.65)],
-                    begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                  ),
-                )),
-                Positioned(bottom: 16, left: 16, right: 16,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // Logo
-                      Container(
-                        width: 60, height: 60,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white, border: Border.all(color: Colors.white, width: 2)),
-                        child: ClipOval(
-                          child: store.logoImage.isNotEmpty
-                              ? CachedNetworkImage(imageUrl: store.logoImage, fit: BoxFit.cover, errorWidget: (_, __, ___) => _logo(store))
-                              : _logo(store),
+                    // ── Store info ─────────────────────────────────────
+                    SliverToBoxAdapter(
+                      child: Container(
+                        color: Colors.white,
+                        padding:
+                            const EdgeInsets.fromLTRB(20, 40, 20, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _store!.name,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                if (_store!.isOnline)
+                                  _badge('Online', AppColors.teal),
+                                if (_store!.isVerified) ...[
+                                  const SizedBox(width: 6),
+                                  _badge('Verified', AppColors.primary),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(_store!.categoryName,
+                                style: const TextStyle(
+                                    fontSize: 13, color: AppColors.textMuted)),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                RatingBarIndicator(
+                                  rating: _store!.rating,
+                                  itemBuilder: (_, __) => const Icon(
+                                      Icons.star_rounded,
+                                      color: AppColors.amber),
+                                  itemCount: 5,
+                                  itemSize: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${_store!.rating} (${_store!.reviewCount} reviews)',
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textPrimary),
+                                ),
+                              ],
+                            ),
+                            if (_store!.address != null) ...[
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on_rounded,
+                                      size: 14, color: AppColors.textMuted),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      _store!.address!,
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.textMuted),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                            const SizedBox(height: 14),
+                            // Delivery info row
+                            Row(
+                              children: [
+                                _infoChip(Icons.access_time_rounded,
+                                    _store!.deliveryTime),
+                                const SizedBox(width: 10),
+                                _infoChip(Icons.local_shipping_outlined,
+                                    '\$${_store!.deliveryFee.toStringAsFixed(0)} delivery'),
+                                const SizedBox(width: 10),
+                                _infoChip(Icons.shopping_bag_outlined,
+                                    'Min \$${_store!.minOrder.toStringAsFixed(0)}'),
+                              ],
+                            ),
+                            if (_store!.description != null) ...[
+                              const SizedBox(height: 14),
+                              Text(
+                                _store!.description!,
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary,
+                                    height: 1.5),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(store.name, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-                          if (store.categoryName != null)
-                            Text(store.categoryName!, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13)),
-                        ],
-                      )),
+                    ),
+
+                    // ── Category chips ─────────────────────────────────
+                    if (_categories.isNotEmpty)
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: _CatHeader(
+                          categories: _categories,
+                          selected: _selectedCategory,
+                          onSelect: (c) =>
+                              setState(() => _selectedCategory = c),
+                        ),
+                      ),
+
+                    // ── Product grid ───────────────────────────────────
+                    SliverPadding(
+                      padding:
+                          const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      sliver: _filtered.isEmpty
+                          ? const SliverToBoxAdapter(
+                              child: Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(40),
+                                  child: Text('No products available',
+                                      style: TextStyle(
+                                          color: AppColors.textMuted)),
+                                ),
+                              ),
+                            )
+                          : SliverGrid(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 14,
+                                childAspectRatio: 0.72,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (_, i) => ProductCard(product: _filtered[i]),
+                                childCount: _filtered.length,
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+      // ── Cart bottom bar ──────────────────────────────────────────────
+      bottomNavigationBar: cart.itemCount > 0
+          ? SafeArea(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: ElevatedButton(
+                  onPressed: () => context.push('/cart'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text('${cart.itemCount} items',
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
+                      ),
+                      const Text('View Cart →',
+                          style: TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text('\$${cart.total.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-        ),
-
-        // Store info chips
-        SliverToBoxAdapter(child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Wrap(spacing: 10, runSpacing: 8, children: [
-            _InfoChip(icon: Icons.star_rounded, label: '${store.rating} (${store.reviewCount})', color: AppColors.accent),
-            _InfoChip(icon: Icons.schedule_rounded, label: store.deliveryTime, color: AppColors.primary),
-            _InfoChip(icon: Icons.delivery_dining_rounded, label: '\$${store.deliveryFee.toStringAsFixed(0)} delivery', color: AppColors.teal),
-            if (store.isOpen)
-              _InfoChip(icon: Icons.circle, label: 'Open', color: AppColors.success)
-            else
-              _InfoChip(icon: Icons.circle, label: 'Closed', color: AppColors.error),
-            if (store.distance != null)
-              _InfoChip(icon: Icons.location_on_rounded, label: '${store.distance!.toStringAsFixed(1)} km', color: AppColors.info),
-          ]),
-        )),
-
-        if (store.description != null && store.description!.isNotEmpty)
-          SliverToBoxAdapter(child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Text(store.description!, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5)),
-          )),
-
-        // Products header
-        const SliverToBoxAdapter(child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Text('Menu', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-        )),
-
-        // Products grid
-        _products.isEmpty
-            ? const SliverToBoxAdapter(child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(child: Text('No products available', style: TextStyle(color: AppColors.textSecondary))),
-              ))
-            : SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (_, i) => ProductCard(
-                      product: _products[i],
-                      onAddToCart: () async {
-                        final ok = await context.read<CartProvider>().addItem(_products[i].id);
-                        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text(ok ? '${_products[i].name} added to cart' : 'Failed'),
-                          backgroundColor: ok ? AppColors.success : AppColors.error,
-                        ));
-                      },
-                    ),
-                    childCount: _products.length,
-                  ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.72),
-                ),
               ),
-      ],
+            )
+          : null,
     );
   }
 
-  Widget _logo(Store store) => Container(
-        decoration: const BoxDecoration(gradient: AppColors.gradientPrimary),
-        child: Center(child: Text(store.initial, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800))),
+  Widget _badge(String text, Color color) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Text(text,
+            style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+      );
+
+  Widget _infoChip(IconData icon, String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: AppColors.primary),
+            const SizedBox(width: 4),
+            Text(text,
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary)),
+          ],
+        ),
       );
 }
 
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  const _InfoChip({required this.icon, required this.label, required this.color});
+class _CatHeader extends SliverPersistentHeaderDelegate {
+  final List<String> categories;
+  final String? selected;
+  final void Function(String?) onSelect;
+
+  const _CatHeader(
+      {required this.categories, required this.selected, required this.onSelect});
+
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(AppRadius.full), border: Border.all(color: color.withOpacity(0.2))),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 5),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
-        ]),
+  double get minExtent => 56;
+  @override
+  double get maxExtent => 56;
+
+  @override
+  Widget build(
+          BuildContext ctx, double shrinkOffset, bool overlapsContent) =>
+      Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: categories.length + 1,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, i) {
+            final isAll = i == 0;
+            final cat = isAll ? null : categories[i - 1];
+            final isSelected = isAll ? selected == null : selected == cat;
+            return GestureDetector(
+              onTap: () => onSelect(cat),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : AppColors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isAll ? 'All' : cat!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       );
+
+  @override
+  bool shouldRebuild(_CatHeader o) =>
+      o.selected != selected || o.categories != categories;
 }

@@ -4,16 +4,15 @@ class Product {
   final String? description;
   final double price;
   final double? originalPrice;
-  final String? image;
-  final int? storeId;
+  final String image;
   final String? storeName;
-  final String? categoryName;
+  final int? storeId;
   final double rating;
   final int reviewCount;
-  final bool isFeatured;
-  final bool isAvailable;
   final int? discountPercent;
   final List<String> tags;
+  final bool isAvailable;
+  final String? categoryName;
 
   const Product({
     required this.id,
@@ -21,45 +20,48 @@ class Product {
     this.description,
     required this.price,
     this.originalPrice,
-    this.image,
-    this.storeId,
+    required this.image,
     this.storeName,
-    this.categoryName,
+    this.storeId,
     this.rating = 4.5,
     this.reviewCount = 0,
-    this.isFeatured = false,
-    this.isAvailable = true,
     this.discountPercent,
     this.tags = const [],
+    this.isAvailable = true,
+    this.categoryName,
   });
 
-  factory Product.fromJson(Map<String, dynamic> j) => Product(
-        id: j['id'] as int,
-        name: j['name'] as String? ?? '',
-        description: j['description'] as String?,
-        price: (j['price'] as num?)?.toDouble() ?? 0,
-        originalPrice: (j['originalPrice'] as num?)?.toDouble(),
-        image: j['image'] as String?,
-        storeId: j['storeId'] as int?,
-        storeName: j['storeName'] as String?,
-        categoryName: j['categoryName'] as String?,
-        rating: (j['rating'] as num?)?.toDouble() ?? 4.5,
-        reviewCount: (j['reviewCount'] as num?)?.toInt() ?? 0,
-        isFeatured: j['isFeatured'] as bool? ?? false,
-        isAvailable: j['isAvailable'] as bool? ?? true,
-        discountPercent: (j['discountPercent'] as num?)?.toInt(),
-        tags: (j['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+  factory Product.fromJson(Map<String, dynamic> json) => Product(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        description: json['description'] as String?,
+        price: (json['price'] as num).toDouble(),
+        originalPrice: (json['originalPrice'] as num?)?.toDouble(),
+        image: json['image'] as String,
+        storeName: json['storeName'] as String?,
+        storeId: json['storeId'] as int?,
+        rating: (json['rating'] as num?)?.toDouble() ?? 4.5,
+        reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
+        discountPercent: json['discountPercent'] as int?,
+        tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+        isAvailable: json['isAvailable'] as bool? ?? true,
+        categoryName: json['categoryName'] as String?,
       );
 
-  bool get hasDiscount =>
-      discountPercent != null && discountPercent! > 0 ||
-      (originalPrice != null && originalPrice! > price);
-
-  double get effectiveDiscount {
-    if (discountPercent != null && discountPercent! > 0) return discountPercent!.toDouble();
-    if (originalPrice != null && originalPrice! > price) {
-      return ((originalPrice! - price) / originalPrice! * 100).roundToDouble();
-    }
-    return 0;
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+        'price': price,
+        'originalPrice': originalPrice,
+        'image': image,
+        'storeName': storeName,
+        'storeId': storeId,
+        'rating': rating,
+        'reviewCount': reviewCount,
+        'discountPercent': discountPercent,
+        'tags': tags,
+        'isAvailable': isAvailable,
+        'categoryName': categoryName,
+      };
 }

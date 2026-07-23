@@ -1,84 +1,83 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/cart.dart';
 import '../services/api_service.dart';
 
 class CartProvider extends ChangeNotifier {
-  Cart _cart = const Cart(items: []);
-  bool _loading = false;
+  List<CartItem> _items = [];
+  bool _isLoading = false;
   String? _error;
 
-  Cart get cart => _cart;
-  bool get loading => _loading;
+  List<CartItem> get items => _items;
+  bool get isLoading => _isLoading;
   String? get error => _error;
-  int get itemCount => _cart.itemCount;
-  bool get isEmpty => _cart.isEmpty;
+  int get itemCount => _items.fold(0, (sum, i) => sum + i.quantity);
+  double get subtotal => _items.fold(0.0, (sum, i) => sum + i.subtotal);
+  double get deliveryFee => _items.isEmpty ? 0 : (_items.first.storeId != null ? 15.0 : 0.0);
+  double get total => subtotal + deliveryFee;
+  bool get isEmpty => _items.isEmpty;
+  String? get storeName => _items.isNotEmpty ? _items.first.storeName : null;
 
-  Future<void> load() async {
-    _loading = true;
-    _error = null;
+  final ApiService _api = ApiService();
+
+  Future<void> fetchCart() async {
+    _isLoading = true;
     notifyListeners();
     try {
-      _cart = await ApiService.instance.getCart();
+      _items = await _api.getCart();
+      _error = null;
     } catch (e) {
       _error = e.toString();
+      _items = [];
     } finally {
-      _loading = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> addItem(int productId, {int quantity = 1}) async {
+  Future<void> addItem(int productId, int quantity) async {
     try {
-      await ApiService.instance.addToCart(productId, quantity);
-      await load();
-      return true;
+      await _api.addToCart(productId, quantity);
+      await fetchCart();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      return false;
     }
   }
 
-  Future<bool> updateItem(int itemId, int quantity) async {
-    if (quantity <= 0) return removeItem(itemId);
+  Future<void> removeItem(int itemId) async {
     try {
-      await ApiService.instance.updateCartItem(itemId, quantity);
-      await load();
-      return true;
+      await _api.removeFromCart(itemId);
+      _items.removeWhere((i) => i.id == itemId);
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      return false;
     }
   }
 
-  Future<bool> removeItem(int itemId) async {
+  Future<void> updateQuantity(int itemId, int quantity) async {
+    if (quantity <= 0) {
+      await removeItem(itemId);
+      return;
+    }
     try {
-      await ApiService.instance.removeCartItem(itemId);
-      await load();
-      return true;
+      await _api.updateCartItem(itemId, quantity);
+      final idx = _items.indexWhere((i) => i.id == itemId);
+      if (idx != -1) {
+        _items[idx] = _items[idx].copyWith(quantity: quantity);
+        notifyListeners();
+      }
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      return false;
     }
   }
 
-  Future<bool> clear() async {
+  Future<void> clearCart() async {
     try {
-      await ApiService.instance.clearCart();
-      _cart = const Cart(items: []);
+      await _api.clearCart();
+      _items = [];
       notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
+    } catch (_) {}
   }
 }

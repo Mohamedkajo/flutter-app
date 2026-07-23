@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/category.dart';
 import '../../models/store.dart';
@@ -15,7 +16,7 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  final _api = ApiService.instance;
+  final _api = ApiService();
   List<Category> _categories = [];
   Category? _selected;
   List<Store> _stores = [];
@@ -111,7 +112,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  Text(cat.icon ?? '🛒',
+                                  Text(cat.icon,
                                       style: const TextStyle(fontSize: 26)),
                                   const SizedBox(height: 4),
                                   Text(

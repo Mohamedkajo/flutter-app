@@ -1,173 +1,201 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../models/category.dart';
 import '../../models/store.dart';
+import '../../models/category.dart';
 import '../../services/api_service.dart';
-import '../../theme/app_theme.dart';
-import '../../widgets/shimmer_loader.dart';
 import '../../widgets/store_card.dart';
+import '../../widgets/common/loading_shimmer.dart';
+import '../../theme/app_theme.dart';
 
 class StoreListingScreen extends StatefulWidget {
-  final String? filter;
-  final String? category;
-
-  const StoreListingScreen({super.key, this.filter, this.category});
+  const StoreListingScreen({super.key});
 
   @override
   State<StoreListingScreen> createState() => _StoreListingScreenState();
 }
 
 class _StoreListingScreenState extends State<StoreListingScreen> {
+  final _api = ApiService();
   List<Store> _stores = [];
   List<Category> _categories = [];
-  bool _loading = true;
-  String? _activeCategory;
+  String? _selectedCategory;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _activeCategory = widget.category;
     _load();
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() => _isLoading = true);
     try {
-      final results = await Future.wait([
-        _fetchStores(),
-        if (_categories.isEmpty) ApiService.instance.getCategories(),
+      final res = await Future.wait([
+        _api.getStores(category: _selectedCategory),
+        _api.getCategories(),
       ]);
-      if (mounted) {
-        setState(() {
-          _stores = results[0] as List<Store>;
-          if (results.length > 1) _categories = results[1] as List<Category>;
-          _loading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _loading = false);
-    }
+      _stores = res[0] as List<Store>;
+      _categories = res[1] as List<Category>;
+    } catch (_) {}
+    setState(() => _isLoading = false);
   }
 
-  Future<List<Store>> _fetchStores() async {
-    switch (widget.filter) {
-      case 'nearby':
-        return ApiService.instance.getNearbyStores();
-      case 'online':
-        final all = await ApiService.instance.getStores(category: _activeCategory);
-        return all.where((s) => s.isOnline).toList();
-      default:
-        return ApiService.instance.getStores(category: _activeCategory);
-    }
-  }
-
-  String get _title {
-    switch (widget.filter) {
-      case 'nearby': return 'Nearby Stores';
-      case 'online': return 'Online Stores';
-      default: return 'All Stores';
-    }
+  Future<void> _filter(String? category) async {
+    _selectedCategory = category;
+    await _load();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: NestedScrollView(
-        headerSliverBuilder: (_, __) => [
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            title: Text(_title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-            expandedHeight: widget.filter == null ? 120 : 0,
-            flexibleSpace: widget.filter == null
-                ? FlexibleSpaceBar(
-                    background: Container(
-                      decoration: const BoxDecoration(gradient: AppColors.gradientPrimary),
-                      alignment: Alignment.bottomLeft,
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: _buildCategoryChips(),
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: _load,
+        child: CustomScrollView(
+          slivers: [
+            // ── App Bar ──────────────────────────────────────────────────
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppColors.primary,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white, size: 20),
+                onPressed: () =>
+                    context.canPop() ? context.pop() : context.go('/'),
+              ),
+              title: const Text(
+                'All Stores',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.search_rounded,
+                      color: Colors.white, size: 22),
+                  onPressed: () => context.go('/search'),
+                ),
+              ],
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(56),
+                child: Container(
+                  color: AppColors.primary,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(28)),
                     ),
-                  )
-                : null,
-          ),
-        ],
-        body: _loading
-            ? ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: 4,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (_, __) => const StoreCardShimmer(),
-              )
-            : _stores.isEmpty
-                ? _buildEmpty()
-                : RefreshIndicator(
-                    color: AppColors.primary,
-                    onRefresh: _load,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _stores.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (_, i) => StoreCard(store: _stores[i]),
-                    ),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: _categories.isEmpty
+                        ? const SizedBox(height: 44)
+                        : SizedBox(
+                            height: 44,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _categories.length + 1,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (ctx, i) {
+                                final isAll = i == 0;
+                                final cat = isAll ? null : _categories[i - 1];
+                                final isSelected = isAll
+                                    ? _selectedCategory == null
+                                    : _selectedCategory == cat?.slug;
+                                return GestureDetector(
+                                  onTap: () => _filter(cat?.slug),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(22),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : AppColors.border,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      isAll
+                                          ? 'All'
+                                          : '${cat!.icon} ${cat.name}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                   ),
-      ),
-    );
-  }
+                ),
+              ),
+            ),
 
-  Widget _buildCategoryChips() {
-    if (_categories.isEmpty) return const SizedBox.shrink();
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _Chip(label: 'All', active: _activeCategory == null, onTap: () { setState(() => _activeCategory = null); _load(); }),
-          ..._categories.map((c) => _Chip(
-                label: c.name,
-                active: _activeCategory == (c.slug ?? c.name),
-                onTap: () { setState(() => _activeCategory = c.slug ?? c.name); _load(); },
-              )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmpty() => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.store_outlined, size: 64, color: AppColors.primary.withOpacity(0.2)),
-            const SizedBox(height: 16),
-            const Text('No stores found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            const Text('Try a different category or filter', style: TextStyle(color: AppColors.textSecondary)),
+            // ── Store list ───────────────────────────────────────────────
+            if (_isLoading)
+              SliverPadding(
+                padding: const EdgeInsets.all(16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, __) => const Padding(
+                      padding: EdgeInsets.only(bottom: 14),
+                      child: StoreCardShimmer(),
+                    ),
+                    childCount: 5,
+                  ),
+                ),
+              )
+            else if (_stores.isEmpty)
+              const SliverFillRemaining(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('🏪', style: TextStyle(fontSize: 52)),
+                      SizedBox(height: 12),
+                      Text('No stores found',
+                          style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary)),
+                      SizedBox(height: 6),
+                      Text('Try a different category',
+                          style: TextStyle(
+                              fontSize: 13, color: AppColors.textMuted)),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding:
+                    const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: StoreCard(store: _stores[i]),
+                    ),
+                    childCount: _stores.length,
+                  ),
+                ),
+              ),
           ],
         ),
-      );
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-  const _Chip({required this.label, required this.active, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: active ? Colors.white : Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(AppRadius.full),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600,
-                color: active ? AppColors.primary : Colors.white,
-              )),
-        ),
-      );
+      ),
+    );
+  }
 }

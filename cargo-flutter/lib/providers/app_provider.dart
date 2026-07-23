@@ -1,59 +1,52 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/store.dart';
 import '../models/product.dart';
 import '../models/category.dart';
 import '../services/api_service.dart';
 
 class AppProvider extends ChangeNotifier {
-  List<Store> _featuredStores = [];
-  List<Product> _flashSales = [];
-  List<Category> _categories = [];
-  List<Product> _trendingProducts = [];
-  bool _loading = false;
-  bool _initialized = false;
-  String? _error;
+  List<Store> featuredStores = [];
+  List<Store> nearbyStores = [];
+  List<Store> onlineStores = [];
+  List<Category> categories = [];
+  List<Map<String, dynamic>> flashSales = [];
+  List<Product> trendingProducts = [];
+  int unreadCount = 2;
+  bool isLoading = false;
+  String? error;
 
-  List<Store> get featuredStores => _featuredStores;
-  List<Product> get flashSales => _flashSales;
-  List<Category> get categories => _categories;
-  List<Product> get trendingProducts => _trendingProducts;
-  bool get loading => _loading;
-  bool get initialized => _initialized;
-  String? get error => _error;
+  final ApiService _api = ApiService();
 
-  Future<void> init() async {
-    if (_initialized) return;
-    _loading = true;
+  Future<void> loadHomeData() async {
+    isLoading = true;
     notifyListeners();
-    await _loadAll();
-  }
-
-  Future<void> refresh() async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
-    await _loadAll();
-  }
-
-  Future<void> _loadAll() async {
     try {
       final results = await Future.wait([
-        ApiService.instance.getFeaturedStores().catchError((_) => <Store>[]),
-        ApiService.instance.getFlashSales().catchError((_) => <Product>[]),
-        ApiService.instance.getCategories().catchError((_) => <Category>[]),
-        ApiService.instance.getProducts(featured: true).catchError((_) => <Product>[]),
+        _api.getFeaturedStores(),
+        _api.getNearbyStores(),
+        _api.getCategories(),
+        _api.getOnlineStores(),
+        _api.getFlashSales(),
+        _api.getTrendingProducts(),
       ]);
-
-      _featuredStores = results[0] as List<Store>;
-      _flashSales = results[1] as List<Product>;
-      _categories = results[2] as List<Category>;
-      _trendingProducts = results[3] as List<Product>;
-      _initialized = true;
-      _error = null;
+      featuredStores = results[0] as List<Store>;
+      nearbyStores = results[1] as List<Store>;
+      categories = results[2] as List<Category>;
+      onlineStores = results[3] as List<Store>;
+      flashSales = results[4] as List<Map<String, dynamic>>;
+      trendingProducts = results[5] as List<Product>;
+      error = null;
     } catch (e) {
-      _error = e.toString();
+      error = e.toString();
     } finally {
-      _loading = false;
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void decrementUnread() {
+    if (unreadCount > 0) {
+      unreadCount--;
       notifyListeners();
     }
   }

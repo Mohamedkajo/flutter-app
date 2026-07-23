@@ -7,55 +7,49 @@ import 'providers/app_provider.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
+    statusBarIconBrightness: Brightness.light,
   ));
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const CargoApp());
 }
 
-class CargoApp extends StatelessWidget {
+class CargoApp extends StatefulWidget {
   const CargoApp({super.key});
+
+  @override
+  State<CargoApp> createState() => _CargoAppState();
+}
+
+class _CargoAppState extends State<CargoApp> {
+  final _authProvider = AuthProvider();
+  final _cartProvider = CartProvider();
+  final _appProvider = AppProvider();
+  late final _router = AppRouter.router(_authProvider);
+
+  @override
+  void initState() {
+    super.initState();
+    _authProvider.loadFromStorage();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => AppProvider()),
+        ChangeNotifierProvider.value(value: _authProvider),
+        ChangeNotifierProvider.value(value: _cartProvider),
+        ChangeNotifierProvider.value(value: _appProvider),
       ],
-      child: const _RouterWrapper(),
-    );
-  }
-}
-
-class _RouterWrapper extends StatefulWidget {
-  const _RouterWrapper();
-  @override
-  State<_RouterWrapper> createState() => _RouterWrapperState();
-}
-
-class _RouterWrapperState extends State<_RouterWrapper> {
-  late final _router = buildRouter(context.read<AuthProvider>());
-
-  @override
-  Widget build(BuildContext context) {
-    // Trigger app data load once authenticated
-    final auth = context.watch<AuthProvider>();
-    if (auth.isAuthenticated) {
-      context.read<AppProvider>().init();
-      context.read<CartProvider>().load();
-    }
-
-    return MaterialApp.router(
-      title: 'Cargo',
-      debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(),
-      routerConfig: _router,
+      child: MaterialApp.router(
+        title: 'Cargo',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        routerConfig: _router,
+      ),
     );
   }
 }

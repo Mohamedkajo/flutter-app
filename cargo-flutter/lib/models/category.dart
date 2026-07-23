@@ -1,29 +1,31 @@
 class Category {
   final int id;
   final String name;
-  final String? slug;
-  final String? icon;
-  final String? image;
-  final int? storeCount;
-  final int? productCount;
+  final String slug;
+  final String icon;
+  final int storeCount;
 
   const Category({
     required this.id,
     required this.name,
-    this.slug,
-    this.icon,
-    this.image,
-    this.storeCount,
-    this.productCount,
+    required this.slug,
+    required this.icon,
+    this.storeCount = 0,
   });
 
-  factory Category.fromJson(Map<String, dynamic> j) => Category(
-        id: j['id'] as int,
-        name: j['name'] as String? ?? '',
-        slug: j['slug'] as String?,
-        icon: j['icon'] as String?,
-        image: j['image'] as String?,
-        storeCount: (j['storeCount'] as num?)?.toInt(),
-        productCount: (j['productCount'] as num?)?.toInt(),
+  factory Category.fromJson(Map<String, dynamic> json) => Category(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        slug: json['slug'] as String,
+        icon: json['icon'] as String,
+        storeCount: (json['storeCount'] as num?)?.toInt() ?? 0,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'slug': slug,
+        'icon': icon,
+        'storeCount': storeCount,
+      };
 }

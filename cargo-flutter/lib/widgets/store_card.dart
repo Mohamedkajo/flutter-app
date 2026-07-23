@@ -6,7 +6,6 @@ import '../theme/app_theme.dart';
 
 class StoreCard extends StatelessWidget {
   final Store store;
-
   const StoreCard({super.key, required this.store});
 
   @override
@@ -16,215 +15,152 @@ class StoreCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.07),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover image
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(18)),
-                  child: CachedNetworkImage(
-                    imageUrl: store.image,
-                    height: 145,
+            // Banner image
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+              child: Stack(
+                children: [
+                  SizedBox(
+                    height: 140,
                     width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
-                      height: 145,
-                      color: AppColors.surface,
-                    ),
-                    errorWidget: (_, __, ___) => Container(
-                      height: 145,
-                      color: AppColors.primaryLight,
-                      child: const Icon(Icons.storefront_rounded,
-                          color: AppColors.primary, size: 40),
-                    ),
+                    child: store.coverImage.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: store.coverImage,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => _placeholder(),
+                            placeholder: (_, __) => _placeholder(shimmer: true),
+                          )
+                        : _placeholder(),
                   ),
-                ),
-                // Gradient overlay
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(18)),
-                    child: Container(
-                      decoration: const BoxDecoration(gradient: AppColors.darkGradient),
-                    ),
-                  ),
-                ),
-                // Featured badge
-                if (store.isFeatured)
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  // Gradient overlay
+                  Positioned.fill(
+                    child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: AppColors.coral,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'Featured',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.black.withOpacity(0.55)],
+                          stops: const [0.4, 1.0],
+                        ),
                       ),
                     ),
                   ),
-                // Online badge
-                if (store.isOnline)
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.teal,
-                        borderRadius: BorderRadius.circular(20),
+                  // Featured badge
+                  if (store.isFeatured)
+                    Positioned(
+                      top: 10, left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                        ),
+                        child: const Text('Featured', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    ),
+                  // Online badge
+                  if (store.isOnline)
+                    Positioned(
+                      top: 10, right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.teal,
+                          borderRadius: BorderRadius.circular(AppRadius.full),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
+                            const SizedBox(width: 4),
+                            const Text('Online', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  // Rating & delivery time badges (bottom)
+                  Positioned(
+                    bottom: 8, left: 10,
+                    child: _Badge(icon: Icons.star_rounded, iconColor: AppColors.accent, text: '${store.rating}'),
+                  ),
+                  Positioned(
+                    bottom: 8, right: 10,
+                    child: _Badge(icon: Icons.schedule_rounded, iconColor: Colors.white70, text: store.deliveryTime),
+                  ),
+                ],
+              ),
+            ),
+
+            // Store info
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Logo circle
+                  Transform.translate(
+                    offset: const Offset(0, -18),
+                    child: Container(
+                      width: 48, height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(color: Colors.white, width: 3),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2))],
+                      ),
+                      child: ClipOval(
+                        child: store.logoImage.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: store.logoImage,
+                                fit: BoxFit.cover,
+                                errorWidget: (_, __, ___) => _logoPlaceholder(store.initial),
+                              )
+                            : _logoPlaceholder(store.initial),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                              width: 5,
-                              height: 5,
-                              decoration: const BoxDecoration(
-                                  color: Colors.white, shape: BoxShape.circle)),
-                          const SizedBox(width: 4),
-                          const Text('Online',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(store.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+                              ),
+                              if (store.isVerified)
+                                const Icon(Icons.verified_rounded, color: AppColors.info, size: 16),
+                            ],
+                          ),
+                          if (store.categoryName != null)
+                            Text(store.categoryName!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w400)),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              _Chip(label: store.deliveryTime, icon: Icons.schedule_rounded),
+                              const SizedBox(width: 6),
+                              _Chip(label: '\$${store.deliveryFee.toStringAsFixed(0)} delivery'),
+                              if (store.distance != null) ...[
+                                const SizedBox(width: 6),
+                                _Chip(label: '${store.distance!.toStringAsFixed(1)} km', icon: Icons.location_on_rounded),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
-                    ),
-                  ),
-                // Rating & time chips
-                Positioned(
-                  bottom: 10,
-                  left: 10,
-                  child: _chip(
-                    Icon(Icons.star_rounded,
-                        size: 13, color: AppColors.amber),
-                    '${store.rating} (${store.reviewCount})',
-                  ),
-                ),
-                Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: _chip(
-                    const Icon(Icons.access_time_rounded,
-                        size: 13, color: AppColors.primary),
-                    store.deliveryTime,
-                  ),
-                ),
-              ],
-            ),
-            // Info row
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Row(
-                children: [
-                  // Logo
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border, width: 2),
-                      color: Colors.white,
-                    ),
-                    child: ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: store.logo ?? store.image,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => Container(
-                          color: AppColors.primaryLight,
-                          child: Center(
-                            child: Text(
-                              store.name[0],
-                              style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 16),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                store.name,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (store.isVerified)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 4),
-                                child: Icon(Icons.verified_rounded,
-                                    size: 14, color: AppColors.primary),
-                              ),
-                          ],
-                        ),
-                        Text(
-                          store.categoryName,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary),
-                        ),
-                        const SizedBox(height: 6),
-                        const Divider(height: 1, color: AppColors.divider),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            if (store.distance != null) ...[
-                              const Icon(Icons.location_on_rounded,
-                                  size: 12, color: AppColors.primary),
-                              const SizedBox(width: 2),
-                              Text('${store.distance!.toStringAsFixed(1)} km',
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary)),
-                              const SizedBox(width: 10),
-                            ],
-                            Container(
-                                width: 5,
-                                height: 5,
-                                decoration: const BoxDecoration(
-                                    color: AppColors.primary,
-                                    shape: BoxShape.circle)),
-                            const SizedBox(width: 4),
-                            Text('\$${store.deliveryFee.toStringAsFixed(0)} delivery',
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary)),
-                          ],
-                        ),
-                      ],
                     ),
                   ),
                 ],
@@ -236,146 +172,62 @@ class StoreCard extends StatelessWidget {
     );
   }
 
-  Widget _chip(Widget icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          icon,
-          const SizedBox(width: 4),
-          Text(text,
-              style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary)),
-        ],
-      ),
-    );
-  }
+  Widget _placeholder({bool shimmer = false}) => Container(
+        color: AppColors.shimmerBase,
+        child: const Center(child: Icon(Icons.store_rounded, color: AppColors.primary, size: 36)),
+      );
+
+  Widget _logoPlaceholder(String initial) => Container(
+        decoration: const BoxDecoration(gradient: AppColors.gradientPrimary),
+        child: Center(
+          child: Text(initial,
+              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+        ),
+      );
 }
 
-// Compact horizontal store card for search results
-class StoreCardCompact extends StatelessWidget {
-  final Store store;
-
-  const StoreCardCompact({super.key, required this.store});
+class _Badge extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String text;
+  const _Badge({required this.icon, required this.iconColor, required this.text});
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/stores/${store.id}'),
-      child: Container(
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: Colors.white.withOpacity(0.92),
+          borderRadius: BorderRadius.circular(AppRadius.full),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
-              child: CachedNetworkImage(
-                imageUrl: store.image,
-                width: 90,
-                height: 90,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(
-                  width: 90,
-                  height: 90,
-                  color: AppColors.primaryLight,
-                  child: const Icon(Icons.storefront_rounded,
-                      color: AppColors.primary, size: 32),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            store.name,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (store.isOnline)
-                          Container(
-                            margin: const EdgeInsets.only(right: 12),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.teal.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text('Online',
-                                style: TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.teal,
-                                    fontWeight: FontWeight.w600)),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(store.categoryName,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textMuted)),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.star_rounded,
-                            size: 13, color: AppColors.amber),
-                        const SizedBox(width: 2),
-                        Text('${store.rating}',
-                            style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary)),
-                        const SizedBox(width: 10),
-                        const Icon(Icons.access_time_rounded,
-                            size: 12, color: AppColors.textMuted),
-                        const SizedBox(width: 2),
-                        Text(store.deliveryTime,
-                            style: const TextStyle(
-                                fontSize: 11, color: AppColors.textSecondary)),
-                        const SizedBox(width: 10),
-                        const Icon(Icons.local_shipping_outlined,
-                            size: 12, color: AppColors.textMuted),
-                        const SizedBox(width: 2),
-                        Text('\$${store.deliveryFee.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                                fontSize: 11, color: AppColors.textSecondary)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            Icon(icon, size: 12, color: iconColor == Colors.white70 ? AppColors.textSecondary : iconColor),
+            const SizedBox(width: 3),
+            Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
           ],
         ),
-      ),
-    );
-  }
+      );
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+  const _Chip({required this.label, this.icon});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.divider,
+          borderRadius: BorderRadius.circular(AppRadius.full),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[Icon(icon!, size: 10, color: AppColors.primary), const SizedBox(width: 3)],
+            Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.textSecondary)),
+          ],
+        ),
+      );
 }

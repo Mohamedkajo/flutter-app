@@ -1,267 +1,305 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../models/user.dart';
 import '../models/store.dart';
 import '../models/product.dart';
 import '../models/category.dart';
-import '../models/order.dart';
 import '../models/cart.dart';
-import '../models/user.dart';
+import '../models/order.dart';
+import '../models/notification_model.dart';
 
 class ApiException implements Exception {
-  final String message;
   final int? statusCode;
+  final String message;
   ApiException(this.message, {this.statusCode});
-
   @override
-  String toString() => 'ApiException: $message (status: $statusCode)';
+  String toString() => message;
 }
 
 class ApiService {
-  static final ApiService _instance = ApiService._internal();
-  factory ApiService() => _instance;
-  ApiService._internal();
+  ApiService._();
+  static final ApiService instance = ApiService._();
 
   String? _token;
 
-  void setToken(String? token) => _token = token;
+  Future<void> setToken(String token) async {
+    _token = token;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(ApiConfig.tokenKey, token);
+  }
+
+  Future<String?> getToken() async {
+    if (_token != null) return _token;
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString(ApiConfig.tokenKey);
+    return _token;
+  }
+
+  Future<void> clearToken() async {
+    _token = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(ApiConfig.tokenKey);
+    await prefs.remove(ApiConfig.userKey);
+  }
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
-  Uri _uri(String path, [Map<String, dynamic>? params]) {
-    final cleanPath = path.startsWith('/') ? path : '/$path';
-    final base = Uri.parse('${ApiConfig.baseUrl}$cleanPath');
-    if (params == null || params.isEmpty) return base;
-    final filtered = <String, String>{};
-    params.forEach((k, v) {
-      if (v != null) filtered[k] = v.toString();
-    });
-    return base.replace(queryParameters: filtered);
+  Uri _url(String path, [Map<String, String>? query]) {
+    final base = ApiConfig.baseUrl.endsWith('/')
+        ? ApiConfig.baseUrl.substring(0, ApiConfig.baseUrl.length - 1)
+        : ApiConfig.baseUrl;
+    final uri = Uri.parse('$base$path');
+    return query != null ? uri.replace(queryParameters: query) : uri;
   }
 
-  Future<dynamic> _get(String path, [Map<String, dynamic>? params]) async {
-    final res = await http
-        .get(_uri(path, params), headers: _headers)
-        .timeout(ApiConfig.receiveTimeout);
-    return _parse(res);
+  Future<dynamic> _get(String path, [Map<String, String>? query]) async {
+    try {
+      final res = await http
+          .get(_url(path, query), headers: _headers)
+          .timeout(ApiConfig.receiveTimeout);
+      return _parse(res);
+    } on SocketException {
+      throw ApiException('No internet connection');
+    } on HttpException {
+      throw ApiException('Network error');
+    }
   }
 
-  Future<dynamic> _post(String path, [Map<String, dynamic>? body]) async {
-    final res = await http
-        .post(_uri(path), headers: _headers, body: jsonEncode(body ?? {}))
-        .timeout(ApiConfig.receiveTimeout);
-    return _parse(res);
+  Future<dynamic> _post(String path, Map<String, dynamic> body) async {
+    try {
+      final res = await http
+          .post(_url(path), headers: _headers, body: jsonEncode(body))
+          .timeout(ApiConfig.receiveTimeout);
+      return _parse(res);
+    } on SocketException {
+      throw ApiException('No internet connection');
+    }
   }
 
-  Future<dynamic> _patch(String path, [Map<String, dynamic>? body]) async {
-    final res = await http
-        .patch(_uri(path), headers: _headers, body: jsonEncode(body ?? {}))
-        .timeout(ApiConfig.receiveTimeout);
-    return _parse(res);
+  Future<dynamic> _put(String path, Map<String, dynamic> body) async {
+    try {
+      final res = await http
+          .put(_url(path), headers: _headers, body: jsonEncode(body))
+          .timeout(ApiConfig.receiveTimeout);
+      return _parse(res);
+    } on SocketException {
+      throw ApiException('No internet connection');
+    }
   }
 
   Future<dynamic> _delete(String path) async {
-    final res = await http
-        .delete(_uri(path), headers: _headers)
-        .timeout(ApiConfig.receiveTimeout);
-    return _parse(res);
+    try {
+      final res = await http
+          .delete(_url(path), headers: _headers)
+          .timeout(ApiConfig.receiveTimeout);
+      return _parse(res);
+    } on SocketException {
+      throw ApiException('No internet connection');
+    }
   }
 
   dynamic _parse(http.Response res) {
-    final body = jsonDecode(res.body);
-    if (res.statusCode >= 200 && res.statusCode < 300) return body;
-    final msg = body is Map
-        ? body['error'] ?? body['message'] ?? 'Request failed'
-        : 'Request failed';
-    throw ApiException(msg.toString(), statusCode: res.statusCode);
+    final body = utf8.decode(res.bodyBytes);
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return body.isNotEmpty ? jsonDecode(body) : null;
+    }
+    String msg = 'Request failed';
+    try {
+      final data = jsonDecode(body);
+      msg = data['message'] ?? data['error'] ?? msg;
+    } catch (_) {}
+    throw ApiException(msg, statusCode: res.statusCode);
   }
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> login(String email, String password) async =>
-      await _post('/auth/login', {'email': email, 'password': password})
-          as Map<String, dynamic>;
+  // ─── Auth ───────────────────────────────────────────────────────────────────
 
-  Future<Map<String, dynamic>> register(
-          String name, String phone, String email, String password) async =>
-      await _post('/auth/register', {
-        'name': name,
-        'phone': phone,
-        'email': email,
-        'password': password,
-      }) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final data = await _post('/auth/login', {'email': email, 'password': password});
+    return data as Map<String, dynamic>;
+  }
 
-  Future<Map<String, dynamic>> getProfile() async =>
-      await _get('/users/profile') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> register(String name, String email, String password) async {
+    final data = await _post('/auth/register', {
+      'name': name,
+      'email': email,
+      'password': password,
+    });
+    return data as Map<String, dynamic>;
+  }
 
-  Future<void> updateProfile(Map<String, dynamic> data) async =>
-      await _patch('/users/profile', data);
+  Future<User> getProfile() async {
+    final data = await _get('/auth/me');
+    return User.fromJson(data as Map<String, dynamic>);
+  }
 
-  // ── Stores ───────────────────────────────────────────────────────────────
-  Future<List<Store>> getStores({
-    String? category,
-    String? search,
-    bool? featured,
-    bool? online,
-  }) async {
-    final data = await _get('/stores', {
+  Future<User> updateProfile(Map<String, dynamic> body) async {
+    final data = await _put('/auth/profile', body);
+    return User.fromJson(data as Map<String, dynamic>);
+  }
+
+  // ─── Stores ─────────────────────────────────────────────────────────────────
+
+  Future<List<Store>> getStores({String? category, String? search, int limit = 20}) async {
+    final q = <String, String>{
+      'limit': '$limit',
       if (category != null) 'category': category,
       if (search != null) 'search': search,
-      if (featured != null) 'featured': featured.toString(),
-      if (online != null) 'online': online.toString(),
-    }) as List<dynamic>;
-    return data.map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
+    };
+    final data = await _get('/stores', q);
+    return (data as List<dynamic>).map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<List<Store>> getFeaturedStores() async {
-    final data = await _get('/stores/featured') as List<dynamic>;
-    return data.map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
+    final data = await _get('/stores', {'featured': 'true', 'limit': '10'});
+    return (data as List<dynamic>).map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<List<Store>> getNearbyStores() async {
-    final data = await _get('/stores/nearby') as List<dynamic>;
-    return data.map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
+    final data = await _get('/stores/nearby');
+    return (data as List<dynamic>).map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<Store>> getOnlineStores() async {
-    final data = await _get('/stores/online') as List<dynamic>;
-    return data.map((e) => Store.fromJson(e as Map<String, dynamic>)).toList();
+  Future<Store> getStore(int id) async {
+    final data = await _get('/stores/$id');
+    return Store.fromJson(data as Map<String, dynamic>);
   }
 
-  Future<Store> getStore(int id) async =>
-      Store.fromJson(await _get('/stores/$id') as Map<String, dynamic>);
-
-  Future<List<Product>> getStoreProducts(int storeId,
-      {String? category}) async {
-    final data = await _get('/stores/$storeId/products',
-        {if (category != null) 'category': category}) as List<dynamic>;
-    return data.map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
+  Future<List<Product>> getStoreProducts(int storeId) async {
+    final data = await _get('/stores/$storeId/products');
+    return (data as List<dynamic>).map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<Category>> getStoreCategories(int storeId) async {
-    final data = await _get('/stores/$storeId/categories') as List<dynamic>;
-    return data.map((e) => Category.fromJson(e as Map<String, dynamic>)).toList();
-  }
+  // ─── Products ────────────────────────────────────────────────────────────────
 
-  // ── Categories ───────────────────────────────────────────────────────────
-  Future<List<Category>> getCategories() async {
-    final data = await _get('/categories') as List<dynamic>;
-    return data.map((e) => Category.fromJson(e as Map<String, dynamic>)).toList();
-  }
-
-  // ── Products ─────────────────────────────────────────────────────────────
-  Future<List<Product>> getProducts({String? search, String? category}) async {
-    final data = await _get('/products', {
+  Future<List<Product>> getProducts({String? search, String? category, bool? featured}) async {
+    final q = <String, String>{
       if (search != null) 'search': search,
       if (category != null) 'category': category,
-    }) as List<dynamic>;
-    return data.map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
+      if (featured != null) 'featured': '$featured',
+    };
+    final data = await _get('/products', q.isNotEmpty ? q : null);
+    return (data as List<dynamic>).map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<Product>> getTrendingProducts() async {
-    final data = await _get('/products/trending') as List<dynamic>;
-    return data.map((e) => Product.fromJson(e as Map<String, dynamic>)).toList();
+  Future<Product> getProduct(int id) async {
+    final data = await _get('/products/$id');
+    return Product.fromJson(data as Map<String, dynamic>);
   }
 
-  Future<List<Product>> searchProducts(String query) async =>
-      getProducts(search: query);
+  Future<List<Product>> searchProducts(String query) => getProducts(search: query);
 
-  Future<Product> getProduct(int id) async =>
-      Product.fromJson(await _get('/products/$id') as Map<String, dynamic>);
+  // ─── Categories ──────────────────────────────────────────────────────────────
 
-  // ── Flash Sales ───────────────────────────────────────────────────────────
-  Future<List<Map<String, dynamic>>> getFlashSales() async =>
-      ((await _get('/flash-sales')) as List<dynamic>)
-          .cast<Map<String, dynamic>>();
-
-  // ── Cart ─────────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> getCartFull() async =>
-      await _get('/cart') as Map<String, dynamic>;
-
-  Future<List<CartItem>> getCart() async {
-    final data = await _get('/cart') as Map<String, dynamic>;
-    final items = data['items'] as List<dynamic>? ?? [];
-    return items.map((e) => CartItem.fromJson(e as Map<String, dynamic>)).toList();
+  Future<List<Category>> getCategories() async {
+    final data = await _get('/categories');
+    return (data as List<dynamic>).map((e) => Category.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<Map<String, dynamic>> addToCartFull(
-      int productId, int quantity) async =>
-      await _post('/cart/items', {
-        'productId': productId,
-        'quantity': quantity,
-      }) as Map<String, dynamic>;
+  // ─── Flash Sales ─────────────────────────────────────────────────────────────
 
-  Future<void> addToCart(int productId, int quantity) async =>
-      await addToCartFull(productId, quantity);
-
-  Future<void> updateCartItem(int itemId, int quantity) async =>
-      await _patch('/cart/items/$itemId', {'quantity': quantity});
-
-  Future<void> removeCartItem(int itemId) async =>
-      await _delete('/cart/items/$itemId');
-
-  Future<void> clearCart() async => await _delete('/cart');
-
-  // ── Orders ───────────────────────────────────────────────────────────────
-  Future<List<Order>> getOrders({String? status}) async {
-    final data = await _get('/orders',
-        {if (status != null) 'status': status}) as List<dynamic>;
-    return data.map((e) => Order.fromJson(e as Map<String, dynamic>)).toList();
+  Future<List<Product>> getFlashSales() async {
+    try {
+      final data = await _get('/flash-sales');
+      final List<dynamic> items = data is List ? data : (data['items'] ?? []);
+      return items
+          .map((e) {
+            final product = (e['product'] ?? e) as Map<String, dynamic>;
+            if (e['discountPercent'] != null) product['discountPercent'] = e['discountPercent'];
+            return Product.fromJson(product);
+          })
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
-  Future<Order> getOrder(int id) async =>
-      Order.fromJson(await _get('/orders/$id') as Map<String, dynamic>);
+  // ─── Cart ─────────────────────────────────────────────────────────────────────
 
-  Future<Order> placeOrder(Map<String, dynamic> body) async =>
-      Order.fromJson(await _post('/orders', body) as Map<String, dynamic>);
+  Future<Cart> getCart() async {
+    final data = await _get('/cart');
+    if (data is List) return Cart(items: data.map((e) => CartItem.fromJson(e as Map<String, dynamic>)).toList());
+    return Cart.fromJson(data as Map<String, dynamic>);
+  }
 
-  Future<Order> cancelOrder(int id) async =>
-      Order.fromJson(
-          await _post('/orders/$id/cancel') as Map<String, dynamic>);
+  Future<void> addToCart(int productId, int quantity) async {
+    await _post('/cart', {'productId': productId, 'quantity': quantity});
+  }
 
-  Future<Map<String, dynamic>> getOrderTracking(int id) async =>
-      await _get('/orders/$id/tracking') as Map<String, dynamic>;
+  Future<void> updateCartItem(int itemId, int quantity) async {
+    await _put('/cart/$itemId', {'quantity': quantity});
+  }
 
-  // ── Wallet ───────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> getWallet() async =>
-      await _get('/wallet') as Map<String, dynamic>;
+  Future<void> removeCartItem(int itemId) async {
+    await _delete('/cart/$itemId');
+  }
 
-  Future<List<Map<String, dynamic>>> getTransactions() async =>
-      ((await _get('/wallet/transactions')) as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+  Future<void> clearCart() async {
+    await _delete('/cart');
+  }
 
-  Future<Map<String, dynamic>> topUpWallet(
-      double amount, String paymentMethod) async =>
-      await _post('/wallet/topup', {
-        'amount': amount,
-        'paymentMethod': paymentMethod,
-      }) as Map<String, dynamic>;
+  // ─── Orders ───────────────────────────────────────────────────────────────────
 
-  // ── Favorites ────────────────────────────────────────────────────────────
-  Future<List<Map<String, dynamic>>> getFavorites() async =>
-      ((await _get('/favorites')) as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+  Future<List<Order>> getOrders() async {
+    final data = await _get('/orders');
+    return (data as List<dynamic>).map((e) => Order.fromJson(e as Map<String, dynamic>)).toList();
+  }
 
-  Future<Map<String, dynamic>> toggleFavorite({
-    required String type,
-    required int refId,
-    String? name,
-    String? image,
-  }) async =>
-      await _post('/favorites/toggle', {
-        'type': type,
-        'refId': refId,
-        if (name != null) 'name': name,
-        if (image != null) 'image': image,
-      }) as Map<String, dynamic>;
+  Future<Order> getOrder(int id) async {
+    final data = await _get('/orders/$id');
+    return Order.fromJson(data as Map<String, dynamic>);
+  }
 
-  // ── Notifications ─────────────────────────────────────────────────────────
-  Future<List<Map<String, dynamic>>> getNotifications() async =>
-      ((await _get('/notifications')) as List<dynamic>)
-          .cast<Map<String, dynamic>>();
+  Future<Order> placeOrder(Map<String, dynamic> body) async {
+    final data = await _post('/orders', body);
+    return Order.fromJson(data as Map<String, dynamic>);
+  }
 
-  Future<void> markNotificationRead(int notificationId) async =>
-      await _post('/notifications/$notificationId/read');
+  Future<void> cancelOrder(int id) async {
+    await _put('/orders/$id', {'status': 'cancelled'});
+  }
+
+  // ─── Favorites ────────────────────────────────────────────────────────────────
+
+  Future<List<Product>> getFavorites() async {
+    final data = await _get('/favorites');
+    return (data as List<dynamic>).map((e) {
+      final product = (e['product'] ?? e) as Map<String, dynamic>;
+      return Product.fromJson(product);
+    }).toList();
+  }
+
+  Future<void> toggleFavorite(int productId) async {
+    await _post('/favorites', {'productId': productId});
+  }
+
+  // ─── Notifications ────────────────────────────────────────────────────────────
+
+  Future<List<AppNotification>> getNotifications() async {
+    final data = await _get('/notifications');
+    return (data as List<dynamic>)
+        .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> markNotificationRead(int id) async {
+    await _put('/notifications/$id', {'isRead': true});
+  }
+
+  // ─── Wallet ───────────────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> getWallet() async {
+    final data = await _get('/wallet');
+    return data as Map<String, dynamic>;
+  }
+
+  Future<void> topUpWallet(double amount) async {
+    await _post('/wallet/topup', {'amount': amount});
+  }
 }

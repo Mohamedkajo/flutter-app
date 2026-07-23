@@ -1,275 +1,130 @@
-# 🚚 Cargo — Premium Multi-Vendor Delivery Marketplace
+# Cargo Flutter App
 
-<p align="center">
-  <img src="screenshots/home.png" width="200" alt="Home Screen"/>
-  <img src="screenshots/store.png" width="200" alt="Store Detail"/>
-  <img src="screenshots/cart.png" width="200" alt="Cart"/>
-  <img src="screenshots/orders.png" width="200" alt="Orders"/>
-</p>
+A production-quality Flutter mobile app for the **Cargo** delivery marketplace — targeting Android & iOS.
 
-> **Cargo** is a production-ready Flutter mobile app for a multi-vendor delivery marketplace targeting the Middle East. It connects customers with restaurants, grocery stores, pharmacies, and fashion retailers — offering real-time order tracking, a built-in wallet, flash sales, and loyalty points.
+## Features
 
----
+- 🏠 **Home** — Promo banners, category pills, flash sales, featured stores, trending products
+- 🔍 **Search** — Debounced search across products and stores, tabbed results
+- 🛒 **Cart** — Quantity controls, delivery address, live order total, place order
+- 📦 **Orders** — Active/past tabs, animated status tracker, order detail with timeline
+- 👤 **Profile** — Loyalty points, wallet balance, full menu, logout
+- 🏪 **Store listing** — Category filter, online/nearby tabs, store cards with real images
+- 🛍️ **Store detail** — Banner, logo, info chips, product grid
+- 📱 **Product detail** — Image, rating bar, quantity picker, add to cart, favorites
+- ❤️ **Favorites** — Save products across sessions
+- 🔔 **Notifications** — Grouped by type with timeago formatting
+- 💳 **Wallet** — Balance card, quick top-up, transaction history
 
-## ✨ Features
+## Tech Stack
 
-| Category | Features |
-|---|---|
-| 🏪 **Discovery** | Featured stores, nearby, online, categories, flash sales, trending products |
-| 🔍 **Search** | Full-text search across stores and products with instant results |
-| 🛒 **Cart** | Add/remove items, quantity control, coupon codes, order summary |
-| 📦 **Orders** | Place orders, active order tracking, order history, cancel/reorder |
-| 🗺️ **Tracking** | Live driver location, step-by-step timeline, ETA |
-| 💳 **Wallet** | Balance, top-up via card/cash, transaction history, loyalty points |
-| ❤️ **Favourites** | Save stores and products across sessions |
-| 🔔 **Notifications** | Order updates, promotions, system alerts with timeago |
-| 👤 **Profile** | Edit profile, addresses, preferences, logout |
-| 🔐 **Auth** | Secure login & registration, JWT token, auto-login from storage |
+| Layer | Package |
+|-------|---------|
+| State | `provider` ^6.1.2 |
+| Navigation | `go_router` ^14.3.0 |
+| HTTP | `http` ^1.2.2 |
+| Storage | `shared_preferences` ^2.3.3 |
+| Images | `cached_network_image` ^3.4.1 |
+| Fonts | `google_fonts` (Poppins) |
+| UI extras | `shimmer`, `badges`, `flutter_rating_bar`, `smooth_page_indicator` |
+| Utils | `intl`, `timeago`, `url_launcher`, `image_picker` |
 
----
+## Quick Start
 
-## 🎨 Design System
+### 1. Prerequisites
 
-Brand palette following the **Cargo** design language:
+- Flutter SDK ≥ 3.3.0 — [flutter.dev/get-started](https://docs.flutter.dev/get-started/install)
+- Android Studio + Android SDK (for Android builds)
+- Xcode (for iOS builds, macOS only)
 
-| Token | Value | Use |
-|---|---|---|
-| Primary | `#5E2D91` | Buttons, highlights, headers |
-| Primary Dark | `#47206E` | Gradients, pressed state |
-| Coral | `#F25B57` | Badges, flash sale, CTAs |
-| Amber | `#F6A623` | Stars, warnings |
-| Teal | `#0DB39E` | Online status, success accents |
-| Font | Poppins | All text via google_fonts |
+Verify: `flutter doctor`
 
----
-
-## 📁 Folder Structure
-
-```
-cargo/
-├── lib/
-│   ├── main.dart                   # App entry point + providers
-│   ├── config/
-│   │   └── api_config.dart         # Base URL, timeouts, storage keys
-│   ├── models/                     # Data models (fromJson / toJson)
-│   │   ├── cart.dart
-│   │   ├── category.dart
-│   │   ├── order.dart
-│   │   ├── product.dart
-│   │   ├── store.dart
-│   │   └── user.dart
-│   ├── providers/                  # ChangeNotifier state management
-│   │   ├── app_provider.dart       # Home data (stores, categories, flash sales)
-│   │   ├── auth_provider.dart      # Auth state + token persistence
-│   │   └── cart_provider.dart      # Cart state + mutations
-│   ├── router/
-│   │   └── app_router.dart         # go_router with auth redirect + shell
-│   ├── services/
-│   │   └── api_service.dart        # HTTP client (singleton)
-│   ├── theme/
-│   │   └── app_theme.dart          # MaterialTheme + AppColors
-│   ├── screens/                    # One folder per feature
-│   │   ├── auth/                   # Login, Register
-│   │   ├── cart/                   # Cart
-│   │   ├── categories/             # Category browser (sidebar + store list)
-│   │   ├── favorites/              # Saved stores & products
-│   │   ├── home/                   # Home feed
-│   │   ├── notifications/          # Notification inbox
-│   │   ├── orders/                 # Order list + tracking
-│   │   ├── product/                # Product detail + add to cart
-│   │   ├── profile/                # User profile + settings
-│   │   ├── search/                 # Full-text search
-│   │   ├── shell/                  # BottomNav shell wrapper
-│   │   ├── store/                  # Store list + store detail
-│   │   └── wallet/                 # Wallet balance + top-up
-│   ├── ui/                         # 📐 Design system & component library
-│   │   ├── index.dart              # Barrel export — import everything from here
-│   │   ├── theme/
-│   │   │   ├── cargo_colors.dart   # Brand palette, gradients, semantic colors
-│   │   │   ├── cargo_typography.dart # Poppins text styles
-│   │   │   └── cargo_spacing.dart  # Spacing scale + radii constants
-│   │   ├── components/
-│   │   │   ├── avatars/            # StoreAvatar (initials fallback)
-│   │   │   ├── badges/             # StatusBadge, OnlineDot
-│   │   │   ├── buttons/            # CargoButton (primary / secondary / text)
-│   │   │   ├── cards/              # StoreListCard, ProductCard, OrderCard, NotificationCard
-│   │   │   ├── feedback/           # CargoEmptyState, CargoErrorState, SuccessDialog
-│   │   │   ├── inputs/             # CargoTextField, CargoSearchBar
-│   │   │   └── misc/              # SectionHeader, CargoTag, RatingRow
-│   │   ├── animations/
-│   │   │   ├── fade_slide_animation.dart  # Staggered list animations
-│   │   │   └── shimmer_loader.dart        # Skeleton placeholders
-│   │   ├── dialogs/
-│   │   │   ├── confirm_dialog.dart         # Generic confirm / alert
-│   │   │   ├── coupon_bottom_sheet.dart    # Coupon code input
-│   │   │   └── topup_bottom_sheet.dart     # Wallet top-up flow
-│   │   ├── forms/
-│   │   │   └── address_form.dart           # Address capture form
-│   │   └── layouts/
-│   │       ├── app_scaffold.dart           # Scaffold + status bar helper
-│   │       └── cargo_bottom_sheet.dart     # Draggable modal bottom sheet
-│   └── widgets/                    # Legacy widget shims (kept for compatibility)
-│       ├── common/
-│       ├── flash_sale_banner.dart
-│       ├── product_card.dart
-│       └── store_card.dart
-├── assets/
-│   ├── icons/                      # SVG / PNG icons
-│   ├── images/                     # Brand images, placeholders
-│   └── lottie/                     # Lottie animation JSONs
-├── android/                        # Android platform files
-├── pubspec.yaml
-└── README.md
-```
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-| Tool | Min Version |
-|---|---|
-| Flutter SDK | 3.3.0 |
-| Dart SDK | 3.0.0 |
-| Android Studio / Xcode | Latest stable |
-
-### Installation
+### 2. Clone & install
 
 ```bash
-# 1. Clone the repo
 git clone https://github.com/Mohamedkajo/flutter-app.git
 cd flutter-app
-
-# 2. Get dependencies
+git checkout flutter-redesign
+cd cargo-flutter
 flutter pub get
-
-# 3. Run on a device or emulator
-flutter run
 ```
 
-### Build for Production
+### 3. Configure API URL
 
-```bash
-# Android release APK
-flutter build apk --release
+Edit `lib/config/api_config.dart` and replace the `defaultValue`:
 
-# Android App Bundle (for Play Store)
-flutter build appbundle --release
-
-# iOS (requires macOS + Xcode)
-flutter build ios --release
-```
-
----
-
-## ⚙️ Environment Variables
-
-The app reads its API base URL from a Dart-define constant at build time.
-
-| Variable | Default | Description |
-|---|---|---|
-| `API_BASE_URL` | Replit dev domain | Backend REST API base URL |
-
-**Override during build:**
-```bash
-flutter run --dart-define=API_BASE_URL=https://api.your-domain.com/api
-flutter build apk --dart-define=API_BASE_URL=https://api.your-domain.com/api
-```
-
-**Or set it permanently** in `lib/config/api_config.dart`:
 ```dart
-static const String baseUrl = 'https://api.your-domain.com/api';
+static const String baseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'https://YOUR-REPLIT-APP.replit.app/api', // ← put your URL here
+);
 ```
 
----
+Or pass it at build time:
 
-## 🔌 Backend API
+```bash
+flutter build apk --release \
+  --dart-define=API_BASE_URL=https://YOUR-REPLIT-APP.replit.app/api
+```
 
-This Flutter app talks to the **Cargo API Server** (Express + PostgreSQL).
+### 4. Run on a connected device
 
-**Endpoints used:**
+```bash
+# List connected devices
+flutter devices
 
-| Method | Endpoint | Auth |
-|---|---|---|
-| POST | `/auth/login` | No |
-| POST | `/auth/register` | No |
-| GET | `/stores` | No |
-| GET | `/stores/featured` | No |
-| GET | `/stores/nearby` | No |
-| GET | `/stores/online` | No |
-| GET | `/stores/:id` | No |
-| GET | `/stores/:id/products` | No |
-| GET | `/categories` | No |
-| GET | `/products/trending` | No |
-| GET | `/flash-sales` | No |
-| GET | `/cart` | ✅ Bearer |
-| POST | `/cart/items` | ✅ Bearer |
-| PATCH | `/cart/items/:id` | ✅ Bearer |
-| DELETE | `/cart/items/:id` | ✅ Bearer |
-| GET | `/orders` | ✅ Bearer |
-| POST | `/orders` | ✅ Bearer |
-| GET | `/orders/:id` | ✅ Bearer |
-| GET | `/orders/:id/tracking` | ✅ Bearer |
-| GET | `/wallet` | ✅ Bearer |
-| POST | `/wallet/topup` | ✅ Bearer |
-| GET | `/favorites` | ✅ Bearer |
-| POST | `/favorites/toggle` | ✅ Bearer |
-| GET | `/notifications` | ✅ Bearer |
-| GET | `/users/profile` | ✅ Bearer |
-| PATCH | `/users/profile` | ✅ Bearer |
+# Run in debug mode (hot reload available)
+flutter run
 
----
+# Build release APK
+flutter build apk --release
+# Output: build/app/outputs/flutter-apk/app-release.apk
+```
 
-## 🧱 State Management
+### 5. Install APK on your phone
 
-The app uses **Provider** (ChangeNotifier) with three top-level providers:
+**Via USB (recommended):**
+```bash
+flutter install
+```
 
-- **`AuthProvider`** — authentication state, token, user data, persist to SharedPreferences
-- **`CartProvider`** — cart items, totals, add/remove/clear
-- **`AppProvider`** — home feed data (featured stores, categories, flash sales, trending products)
+**Via file transfer:**
+1. Copy `build/app/outputs/flutter-apk/app-release.apk` to your phone
+2. Open it → Allow "Install from unknown sources" → Install
 
----
+## Demo Credentials
 
-## 🗺️ Navigation
+| Role | Email | Password |
+|------|-------|----------|
+| Customer | customer@cargo.com | password123 |
+| Admin | admin@cargo.com | admin123 |
 
-Navigation is handled by **go_router** with:
-- Auth redirect (unauthenticated → `/login`)
-- `StatefulShellRoute` for persistent bottom navigation (Home / Search / Cart / Orders / Profile)
-- Deep links for stores, products, orders, tracking
+## Project Structure
 
----
-
-## 🛠️ Key Dependencies
-
-| Package | Purpose |
-|---|---|
-| `provider ^6.1.2` | State management |
-| `go_router ^14.3.0` | Declarative navigation |
-| `http ^1.2.2` | API calls |
-| `google_fonts ^6.2.1` | Poppins typeface |
-| `cached_network_image ^3.4.1` | Image caching with placeholder |
-| `shimmer ^3.0.0` | Loading skeleton animations |
-| `shared_preferences ^2.3.3` | Token persistence |
-| `intl ^0.19.0` | Date / currency formatting |
-| `timeago ^3.7.0` | Human-readable timestamps |
-| `fl_chart ^0.69.0` | Wallet transaction charts |
-| `flutter_rating_bar ^4.0.1` | Star rating display |
-
----
-
-## 📸 Screenshots
-
-| Home | Store Detail | Cart | Orders |
-|---|---|---|---|
-| ![Home](screenshots/home.png) | ![Store](screenshots/store.png) | ![Cart](screenshots/cart.png) | ![Orders](screenshots/orders.png) |
-
-| Search | Wallet | Profile | Tracking |
-|---|---|---|---|
-| ![Search](screenshots/search.png) | ![Wallet](screenshots/wallet.png) | ![Profile](screenshots/profile.png) | ![Tracking](screenshots/tracking.png) |
-
----
-
-## 📄 License
-
-MIT © 2024 Cargo Marketplace
+```
+lib/
+├── config/          # API config, constants
+├── models/          # Data models (User, Store, Product, Order, Cart…)
+├── services/        # ApiService — all HTTP calls
+├── providers/       # ChangeNotifier state (Auth, Cart, App)
+├── router/          # GoRouter configuration
+├── theme/           # AppColors, AppSpacing, AppRadius, ThemeData
+├── widgets/         # Shared UI components
+│   ├── app_shell.dart       # Bottom navigation shell
+│   ├── store_card.dart      # Store card with banner/logo
+│   ├── product_card.dart    # Product card (grid + horizontal)
+│   ├── section_header.dart  # Section title + action link
+│   └── shimmer_loader.dart  # Loading skeleton widgets
+└── screens/
+    ├── auth/         # Login, Register
+    ├── home/         # Home feed
+    ├── search/       # Search with tabs
+    ├── store/        # Store listing, Store detail
+    ├── product/      # Product detail
+    ├── cart/         # Cart + checkout
+    ├── orders/       # Orders list, Order detail
+    ├── profile/      # Profile screen
+    ├── favorites/    # Saved products
+    ├── notifications/# Notification feed
+    └── wallet/       # Balance + top-up + history
+```

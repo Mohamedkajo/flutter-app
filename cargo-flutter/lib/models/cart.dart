@@ -1,45 +1,60 @@
 class CartItem {
   final int id;
   final int productId;
-  final String name;
+  final String productName;
   final double price;
-  final int quantity;
   final String? image;
-  final int? storeId;
   final String? storeName;
+  final int storeId;
+  int quantity;
 
-  const CartItem({
+  CartItem({
     required this.id,
     required this.productId,
-    required this.name,
+    required this.productName,
     required this.price,
-    required this.quantity,
     this.image,
-    this.storeId,
     this.storeName,
+    required this.storeId,
+    required this.quantity,
   });
 
-  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
-        id: json['id'] as int,
-        productId: json['productId'] as int,
-        name: json['name'] as String,
-        price: (json['price'] as num).toDouble(),
-        quantity: json['quantity'] as int,
-        image: json['image'] as String?,
-        storeId: json['storeId'] as int?,
-        storeName: json['storeName'] as String?,
+  factory CartItem.fromJson(Map<String, dynamic> j) => CartItem(
+        id: j['id'] as int,
+        productId: j['productId'] as int,
+        productName: j['productName'] as String? ?? '',
+        price: (j['price'] as num?)?.toDouble() ?? 0,
+        image: j['image'] as String?,
+        storeName: j['storeName'] as String?,
+        storeId: j['storeId'] as int? ?? 0,
+        quantity: j['quantity'] as int? ?? 1,
       );
 
   double get subtotal => price * quantity;
+}
 
-  CartItem copyWith({int? quantity}) => CartItem(
-        id: id,
-        productId: productId,
-        name: name,
-        price: price,
-        quantity: quantity ?? this.quantity,
-        image: image,
-        storeId: storeId,
-        storeName: storeName,
-      );
+class Cart {
+  final List<CartItem> items;
+  final double deliveryFee;
+  final double serviceFee;
+
+  const Cart({
+    required this.items,
+    this.deliveryFee = 0,
+    this.serviceFee = 0,
+  });
+
+  factory Cart.fromJson(Map<String, dynamic> j) {
+    final rawItems = j['items'] as List<dynamic>? ?? [];
+    return Cart(
+      items: rawItems.map((e) => CartItem.fromJson(e as Map<String, dynamic>)).toList(),
+      deliveryFee: (j['deliveryFee'] as num?)?.toDouble() ?? 0,
+      serviceFee: (j['serviceFee'] as num?)?.toDouble() ?? 0,
+    );
+  }
+
+  double get subtotal => items.fold(0, (sum, i) => sum + i.subtotal);
+  double get total => subtotal + deliveryFee + serviceFee;
+  int get itemCount => items.fold(0, (sum, i) => sum + i.quantity);
+  bool get isEmpty => items.isEmpty;
 }

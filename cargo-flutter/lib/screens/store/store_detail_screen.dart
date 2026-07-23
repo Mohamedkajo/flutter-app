@@ -52,14 +52,14 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
     );
   }
 
-  Widget _buildLoading() => const CustomScrollView(slivers: [
-    SliverAppBar(pinned: true, expandedHeight: 200, flexibleSpace: FlexibleSpaceBar(background: ShimmerBox(height: 200))),
-    SliverToBoxAdapter(child: SizedBox(height: 16)),
+  Widget _buildLoading() => CustomScrollView(slivers: [
+    const SliverAppBar(pinned: true, expandedHeight: 200, flexibleSpace: FlexibleSpaceBar(background: ShimmerBox(height: 200))),
+    const SliverToBoxAdapter(child: SizedBox(height: 16)),
     SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverGrid(
-        delegate: SliverChildBuilderDelegate(ProductCardShimmer.new, childCount: 4),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.72),
+        delegate: SliverChildBuilderDelegate((_, __) => const ProductCardShimmer(), childCount: 4),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 0.72),
       ),
     ),
   ]);

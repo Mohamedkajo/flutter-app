@@ -60,7 +60,7 @@ class CargoButton extends StatelessWidget {
           height: height,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              gradient: AppColors.gradientPrimary,
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(

@@ -10,8 +10,6 @@ class MainShell extends StatelessWidget {
 
   const MainShell({super.key, required this.navigationShell});
 
-  static const _routes = ['/', '/search', '/cart', '/orders', '/profile'];
-
   void _onTap(BuildContext ctx, int index) {
     if (index == navigationShell.currentIndex) {
       navigationShell.goBranch(index, initialLocation: true);
@@ -74,7 +72,7 @@ class MainShell extends StatelessWidget {
                             showBadge: cart.itemCount > 0,
                             position: badges.BadgePosition.topEnd(top: -4, end: -4),
                             badgeStyle: const badges.BadgeStyle(
-                              badgeColor: AppColors.coral,
+                              badgeColor: AppColors.secondary,
                               padding: EdgeInsets.all(5),
                             ),
                             badgeContent: Text(
@@ -88,7 +86,7 @@ class MainShell extends StatelessWidget {
                               width: 54,
                               height: 54,
                               decoration: const BoxDecoration(
-                                gradient: AppColors.primaryGradient,
+                                gradient: AppColors.gradientPrimary,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(

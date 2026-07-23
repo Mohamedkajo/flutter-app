@@ -14,7 +14,7 @@ class OrderTrackingScreen extends StatefulWidget {
 }
 
 class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
-  final _api = ApiService();
+  final _api = ApiService.instance;
   Order? _order;
   bool _isLoading = true;
 
@@ -88,19 +88,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     child: Stack(
                       children: [
                         // Fake map grid
-                        ...List.generate(4, (row) => List.generate(6, (col) =>
-                          Positioned(
-                            left: col * 65.0,
-                            top: row * 48.0,
-                            child: Container(
-                              width: 64,
-                              height: 47,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                    color: Colors.white38, width: 0.5),
+                        for (var row = 0; row < 4; row++)
+                          for (var col = 0; col < 6; col++)
+                            Positioned(
+                              left: col * 65.0,
+                              top: row * 48.0,
+                              child: Container(
+                                width: 64,
+                                height: 47,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: Colors.white38, width: 0.5),
+                                ),
                               ),
                             ),
-                          )).expand((e) => e)).expand((e) => [e]),
                         Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -300,10 +301,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                 Row(
                                   children: [
                                     const Icon(Icons.star_rounded,
-                                        size: 13, color: AppColors.amber),
+                                        size: 13, color: AppColors.accent),
                                     const SizedBox(width: 3),
-                                    Text(
-                                        '${_order!.driverRating ?? 4.8}',
+                                    const Text(
+                                        '4.8',
                                         style: const TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w600,
@@ -367,7 +368,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('${item.quantity}× ${item.name}',
+                                    Text('${item.quantity}× ${item.productName}',
                                         style: const TextStyle(
                                             fontSize: 13,
                                             color: AppColors.textSecondary)),
